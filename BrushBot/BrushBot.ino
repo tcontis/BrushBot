@@ -4,6 +4,7 @@
 
 const char* ssid = "";
 const char* password = "";
+char reply[] = "1.5 2.0 4.0 1";
 WiFiUDP Udp;
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
@@ -46,5 +47,6 @@ void loop() {
       receivedPacket[len] = 0;
     }
     Serial.printf("UDP packet contents: %s\n", receivedPacket);
+    writePacket(reply);
   }
 }

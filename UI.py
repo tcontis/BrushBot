@@ -1,10 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import random, sys, warnings
-from PyQt5.QtWidgets import (QVBoxLayout, QGridLayout,QMainWindow,QApplication,QAction)
+import random, sys, warnings,time
+from PyQt5.QtWidgets import (QVBoxLayout, QGridLayout,QMainWindow,QApplication,QAction, QGroupBox)
 from PyQt5.Qt import Qt
-from sklearn.svm import LinearSVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 import matplotlib.pyplot as plt
 
@@ -17,41 +14,49 @@ class Ui_MainWindow(QMainWindow):
         self.setupUi()
 
     def setupUi(self):
-
-        #Initilize variables for tutorial box pages
-        self.current_page, self.max_Page = 0, 0
-        self.app = 1
-
         #Size window to default dimensions
-        self.resize(300, 200)
-        self.setWindowTitle("AbaML")
+        self.resize(900, 800)
+        self.setWindowTitle("BrushBot")
 
         #Create a central Widget
         self.centralwidget = QtWidgets.QWidget(self)
 
         self.masterGridLayout = QGridLayout()
 
-        self.gridLayoutRow1 = QGridLayout()
-        self.setWAction = QAction("Set Enter", self, shortcut=Qt.Key_W, triggered=self.setW)
-        self.addAction(self.setWAction)
-        self.button1 = QtWidgets.QPushButton('W',clicked=self.setWAction.triggered)
-        self.gridLayoutRow1.addWidget(self.button1, 0, 0, 1, 1)
+        self.modeBox = QtWidgets.QGroupBox(self.centralwidget, title="Modes")
+        self.modeBox.setAlignment(QtCore.Qt.AlignCenter)
+        self.commBox = QtWidgets.QGroupBox(self.centralwidget, title="Communications")
+        self.commBox.setAlignment(QtCore.Qt.AlignCenter)
+        self.logBox = QtWidgets.QGroupBox(self.centralwidget, title="Log")
+        self.logBox.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.gridLayoutRow2 = QGridLayout()
-        self.button2 = QtWidgets.QPushButton('A')
-        self.button3 = QtWidgets.QPushButton('S')
-        self.button4 = QtWidgets.QPushButton('D',)
-        self.gridLayoutRow2.addWidget(self.button2, 0, 1, 1, 1)
-        self.gridLayoutRow2.addWidget(self.button3, 0, 2, 1, 1)
-        self.gridLayoutRow2.addWidget(self.button4, 0, 3, 1, 1)
+        self.modeSelectionGroupBox = QtWidgets.QGroupBox()
+        self.modeLabel = QtWidgets.QLabel("Mode Selection:")
+        self.modeSelectionComboBox = QtWidgets.QComboBox()
+        self.modeSelectionComboBox.addItem("Manual")
+        self.modeSelectionComboBox.addItem("Automatic")
 
-        self.row1 = QtWidgets.QWidget()
-        self.row1.setLayout(self.gridLayoutRow1)
-        self.row2 = QtWidgets.QWidget()
-        self.row2.setLayout(self.gridLayoutRow2)
+        self.commText = QtWidgets.QPlainTextEdit()
+        self.commText.setReadOnly(True)
 
-        self.masterGridLayout.addWidget(self.row1,0,0,1,1)
-        self.masterGridLayout.addWidget(self.row2, 1, 0, 1, 1)
+        self.logText = QtWidgets.QPlainTextEdit()
+        self.logText.setReadOnly(True)
+
+        self.modeVerticalLayout = QtWidgets.QVBoxLayout(self.modeBox)
+        self.modeVerticalLayout.addWidget(self.modeSelectionGroupBox)
+        self.modeSelectionGroupBoxHorizontalLayout = QtWidgets.QHBoxLayout(self.modeSelectionGroupBox)
+        self.modeSelectionGroupBoxHorizontalLayout.addWidget(self.modeLabel)
+        self.modeSelectionGroupBoxHorizontalLayout.addWidget(self.modeSelectionComboBox)
+
+        self.commVerticalLayout = QtWidgets.QVBoxLayout(self.commBox)
+        self.commVerticalLayout.addWidget(self.commText)
+
+        self.logVerticalLayout = QtWidgets.QVBoxLayout(self.logBox)
+        self.logVerticalLayout.addWidget(self.logText)
+
+        self.masterGridLayout.addWidget(self.modeBox,0,0,1,1)
+        self.masterGridLayout.addWidget(self.commBox,0,1,1,1)
+        self.masterGridLayout.addWidget(self.logBox,0,2, 1, 1)
         self.setCentralWidget(self.centralwidget)
         self.centralwidget.setLayout(self.masterGridLayout)
 
@@ -73,6 +78,11 @@ class Ui_MainWindow(QMainWindow):
         event.accept()
         sys.exit()
 
-    def setW(self):
-        print('W')
-
+if __name__ == "__main__":
+    app = QApplication([])
+    form = Ui_MainWindow()
+    form.show()
+    form.update()
+    while True:
+        QtWidgets.QApplication.processEvents()
+        time.sleep(0.05)
