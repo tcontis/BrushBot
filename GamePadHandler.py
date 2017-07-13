@@ -3,6 +3,8 @@ import pywinusb.hid as hid
 class GamePadHandler(object):
 
     """
+    Description: Handler to handle GamePad data
+
     Parameters:
         vendorID: Hexadecimal value for device's vendor
         productID: Hexadecimal value for device's ID
@@ -24,6 +26,7 @@ class GamePadHandler(object):
     def connectToDevice(self):
         "Connect to Gamepad"
         self.devices = hid.HidDeviceFilter(vendor_id=self.vendorID, product_id=self.productID).get_devices()
+        assert len(self.devices) > 0, "No device found"
         self.device = self.devices[0]
         self.device.open()
         self.device.set_raw_data_handler(self.sample_handler)
