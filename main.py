@@ -1,60 +1,64 @@
-import socket,time, datetime
-import msvcrt
-import matplotlib.pyplot as plt
-from matplotlib import style
-import matplotlib.animation as animation
-import UI,time, ast,warnings
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtWidgets
+import socket
+import time
+import GamePadHandler
 
+class BrushBotHandler(object):
 
-device_Address = ""
-manualMode = True
-path_to_log = r""
-data, times, rots, accels, dists, vels = [[0.0,0.0,0.0]], [0.0], [0.0], [0.0], [0.0], [0.0]
-fig = plt.figure()
-ax1 = fig.add_subplot(1,1,1)
+    """
+    Description: Class used to handle interactions between BrushBot and a PC.
 
-def write_To_Log(data):
-    with open(path_to_log, 'a') as f:
-        f.write(data + '\n')
-        f.close()
+    Parameters:
 
-def sendMessage(string,receive=True):
-    sock = socket.socket(socket.AF_INET,  # Internet
-                         socket.SOCK_DGRAM)  # UDP
-    sock.sendto(bytes(string, encoding='utf-8'), (device_Address, 8888))
-    data, addr = sock.recvfrom(1024)
-    if receive:
-        return data,addr
+        Device Address: IP Address of BrushBot.
+        Port: Port of Brushbot
+        Datapoints: The amount of datapoints to be received from BrushBot
+        Mode:
+            1: Manual -> Controlled Manually via Logitech Controller
+            2: Automatic -> Controlled via Neural Net pipeline.
+    """
+
+    def __init__(self, deviceAddress, port, dataPoints, mode):
+        self.deviceAddress = deviceAddress
+        assert isinstance(deviceAddress, str), "Invalid Device Address, not a string"
+        self.port = port
+        assert isinstance(port, int), "Invalid Port, not an integer"
+        self.mode = mode
+        assert mode == 1 or mode == 2, "Invalid Mode, must be either 1 or 2"
+        self.dataPoints = dataPoints
+        assert isinstance(dataPoints,int), "Invalid Datapoint Numbers, not an integer"
+
+    def write_To_Log(self,data, logPath):
+        "Log anything"
+        with open(logPath, 'a') as f:
+            f.write(data + '\n')
+            f.close()
+
+    def sendMessage(self,string,receive=True):
+        "Send message to BrushBot"
+        self.sock = socket.socket(socket.AF_INET,  # Internet
+                             socket.SOCK_DGRAM)  # UDP
+        self.sock.sendto(bytes(string, encoding='utf-8'), (self.deviceAddress, self.port))
+        data, addr = self.sock.recvfrom(1024)
+        if receive:
+            return data,addr
+
+    def processData(self,string):
+        "Transform a string of integer into a list of integers"
+        received = string.split()
+        received = [float(i) for i in received]
+        if len(received) == self.dataPoints:
+            return received
 
 if __name__ == '__main__':
-    app = QApplication([])
-    form = UI.Ui_MainWindow()
-    form.show()
-    form.update()
-    start = time.time()
-    while 1:
-        QtWidgets.QApplication.processEvents()
-        #time.sleep(0.01)
-        if manualMode == False:
-            received = input().split()
-            received = [float(i) for i in received]
-            if len(received) == 3:
-                accel, gyro, ultrasonic = received
-                t = "%.3f" % (time.time()-start)
-                times.append(float(t))
-                data.append(received)
-                rots.append(gyro)
-                accels.append(accel)
-                dists.append(ultrasonic)
-                vel = (dists[len(dists)-1]-dists[len(dists)-2])/(times[len(times)-1]-times[len(times)-2])
-                vels.append(vel)
-                print('====================')
-                print("Time: %.3f" % float(t))
-                print("Rotation: %.3f" % gyro)
-                print("Relative Position: %.3f" % ultrasonic)
-                print("Velocity: %.3f" % vel)
-                print("Acceleration: %.3f" % accel)
-                print('====================')
-
+    vendor_id = 0x046d
+    product_id = 0xc216
+    bb = BrushBotHandler("192.168.2.103",8888,4,1)
+    gph = GamePadHandler.GamePadHandler(vendor_id,product_id)
+    if bb.mode == 1:
+        gph.connectToDevice()
+        print(gph.leftJoyStickY,gph.rightJoyStickY)
+        data, addr = bb.sendMessage("%s %s" %(gph.leftJoyStickY,gph.rightJoyStickY), True)
+        while 1:
+            gph.connectToDevice()
+            data, addr = bb.sendMessage("%s %s" %(gph.leftJoyStickY,gph.rightJoyStickY), True)
+            time.sleep(0.05)
