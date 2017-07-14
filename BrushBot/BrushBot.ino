@@ -7,8 +7,10 @@
 
 const char* ssid = "GRITS_Lab";
 const char* password = "grits434!";
-char reply[] = "1.5 2.0 4.0 1";
 WiFiUDP Udp;
+long randomNumber;
+long randomNumber2;
+long randomNumber3;
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
 
@@ -30,6 +32,7 @@ void setup() {
   Serial.println(" connected");
   Udp.begin(localUdpPort);
   Serial.printf("Now listening at IP %s, UDP port %d\n", WiFi.localIP().toString().c_str(), localUdpPort);
+  randomSeed(analogRead(0));
 }
 
 void writePacket(char s[]){
@@ -40,6 +43,18 @@ void writePacket(char s[]){
 
 void loop() {
   // put your main code here, to run repeatedly:
+  randomNumber = random(300);
+  randomNumber2 = random(200);
+  randomNumber3 = random(100);
+  char reply[32];
+  char reply2[32];
+  char reply3[32];
+  sprintf(reply, "%d ",randomNumber);
+  sprintf(reply2, "%d ",randomNumber2);
+  sprintf(reply3, "%d",randomNumber3);
+  char rep[255] = "";
+  strcat(reply, reply2);
+  strcat(reply, reply3);
   int packetSize = Udp.parsePacket();
   if (packetSize){
     // receive incoming UDP packets
