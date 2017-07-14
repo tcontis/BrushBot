@@ -1,86 +1,92 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-import random, sys, warnings,time
+"""UI Layout"""
+
+from PyQt5.QtCore import QObject
+import sys
+import warnings
 import pyqtgraph as pg
-from PyQt5.QtWidgets import (QVBoxLayout, QGridLayout,QMainWindow,QApplication,QAction, QGroupBox)
-from PyQt5.Qt import Qt
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from PyQt5.QtWidgets import (QGridLayout, QMainWindow)
 
 warnings.simplefilter("ignore", DeprecationWarning)
 
-class Ui_MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setupUi()
 
-    def setupUi(self):
-        #Size window to default dimensions
+class UiMainWindow(QMainWindow):
+    """The Main Window for the BrushBot Project"""
+
+    def __init__(self):
+        """Initialize Window"""
+        super().__init__()
+
+        # Size window to default dimensions
         self.resize(1800, 8900)
         self.setWindowTitle("BrushBot")
 
-        #Create a central Widget
-        self.centralwidget = QtWidgets.QWidget(self)
+        # Create a central Widget
+        self.central_widget = QtWidgets.QWidget(self)
 
-        self.masterGridLayout = QGridLayout()
+        self.master_grid_layout = QGridLayout()
 
-        self.modeBox = QtWidgets.QGroupBox(self.centralwidget, title="Modes")
-        self.modeBox.setAlignment(QtCore.Qt.AlignCenter)
-        self.commBox = QtWidgets.QGroupBox(self.centralwidget, title="Communications")
-        self.commBox.setAlignment(QtCore.Qt.AlignCenter)
-        self.logBox = QtWidgets.QGroupBox(self.centralwidget, title="Log")
-        self.logBox.setAlignment(QtCore.Qt.AlignCenter)
-        self.gyroBox = QtWidgets.QGroupBox(self.centralwidget, title="Delta Gyro Plot")
-        self.gyroBox.setAlignment(QtCore.Qt.AlignCenter)
-        self.accelBox = QtWidgets.QGroupBox(self.centralwidget, title="Delta Accelerometer Plot")
-        self.accelBox.setAlignment(QtCore.Qt.AlignCenter)
-        self.posBox = QtWidgets.QGroupBox(self.centralwidget, title="Delta Position Plot")
-        self.posBox.setAlignment(QtCore.Qt.AlignCenter)
+        self.mode_box = QtWidgets.QGroupBox(self.central_widget, title="Modes")
+        self.mode_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.comm_box = QtWidgets.QGroupBox(self.central_widget, title="Communications")
+        self.comm_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.log_box = QtWidgets.QGroupBox(self.central_widget, title="Log")
+        self.log_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.gyro_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Gyro Plot")
+        self.gyro_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.accel_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Accelerometer Plot")
+        self.accel_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.pos_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Position Plot")
+        self.pos_box.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.modeSelectionGroupBox = QtWidgets.QGroupBox()
-        self.modeLabel = QtWidgets.QLabel("Mode Selection:")
-        self.modeSelectionComboBox = QtWidgets.QComboBox()
-        self.modeSelectionComboBox.addItem("Manual")
-        self.modeSelectionComboBox.addItem("Automatic")
+        self.mode_selection_group_box = QtWidgets.QGroupBox()
+        self.mode_label = QtWidgets.QLabel("Mode Selection:")
+        self.mode_selection_combo_box = QtWidgets.QComboBox()
+        self.mode_selection_combo_box.addItem("Manual")
+        self.mode_selection_combo_box.addItem("Automatic")
 
-        self.commText = QtWidgets.QPlainTextEdit()
-        self.commText.setReadOnly(True)
+        self.comm_text = QtWidgets.QPlainTextEdit()
+        self.comm_text.setReadOnly(True)
 
-        self.logText = QtWidgets.QPlainTextEdit()
-        self.logText.setReadOnly(True)
+        self.log_text = QtWidgets.QPlainTextEdit()
+        self.log_text.setReadOnly(True)
 
-        self.gyroPlot = pg.PlotWidget()
+        self.gyro_plot = pg.PlotWidget()
 
-        self.accelPlot = pg.PlotWidget()
+        self.accel_plot = pg.PlotWidget()
 
-        self.posPlot = pg.PlotWidget()
+        self.pos_plot = pg.PlotWidget()
 
-        self.modeVerticalLayout = QtWidgets.QVBoxLayout(self.modeBox)
-        self.modeVerticalLayout.addWidget(self.modeSelectionGroupBox)
-        self.modeSelectionGroupBoxHorizontalLayout = QtWidgets.QHBoxLayout(self.modeSelectionGroupBox)
-        self.modeSelectionGroupBoxHorizontalLayout.addWidget(self.modeLabel)
-        self.modeSelectionGroupBoxHorizontalLayout.addWidget(self.modeSelectionComboBox)
+        self.mode_vertical_layout = QtWidgets.QVBoxLayout(self.mode_box)
+        self.mode_vertical_layout.addWidget(self.mode_selection_group_box)
+        self.mode_selection_group_box_horizontal_layout = QtWidgets.QHBoxLayout(self.mode_selection_group_box)
+        self.mode_selection_group_box_horizontal_layout.addWidget(self.mode_label)
+        self.mode_selection_group_box_horizontal_layout.addWidget(self.mode_selection_combo_box)
 
-        self.commVerticalLayout = QtWidgets.QVBoxLayout(self.commBox)
-        self.commVerticalLayout.addWidget(self.commText)
+        self.comm_vertical_layout = QtWidgets.QVBoxLayout(self.comm_box)
+        self.comm_vertical_layout.addWidget(self.comm_text)
 
-        self.logVerticalLayout = QtWidgets.QVBoxLayout(self.logBox)
-        self.logVerticalLayout.addWidget(self.logText)
+        self.log_vertical_layout = QtWidgets.QVBoxLayout(self.log_box)
+        self.log_vertical_layout.addWidget(self.log_text)
 
-        self.gyroVerticalLayout = QtWidgets.QVBoxLayout(self.gyroBox)
-        self.gyroVerticalLayout.addWidget(self.gyroPlot)
+        self.gyro_vertical_layout = QtWidgets.QVBoxLayout(self.gyro_box)
+        self.gyro_vertical_layout.addWidget(self.gyro_plot)
 
-        self.accelVerticalLayout = QtWidgets.QVBoxLayout(self.accelBox)
-        self.accelVerticalLayout.addWidget(self.accelPlot)
+        self.accel_vertical_layout = QtWidgets.QVBoxLayout(self.accel_box)
+        self.accel_vertical_layout.addWidget(self.accel_plot)
 
-        self.posVerticalLayout = QtWidgets.QVBoxLayout(self.posBox)
-        self.posVerticalLayout.addWidget(self.posPlot)
+        self.pos_vertical_layout = QtWidgets.QVBoxLayout(self.pos_box)
+        self.pos_vertical_layout.addWidget(self.pos_plot)
 
-        self.masterGridLayout.addWidget(self.modeBox,0,0,1,1)
-        self.masterGridLayout.addWidget(self.commBox,0,1,1,1)
-        self.masterGridLayout.addWidget(self.logBox,0,2, 1, 1)
-        self.masterGridLayout.addWidget(self.gyroBox, 1, 0, 1, 1)
-        self.masterGridLayout.addWidget(self.accelBox, 1, 1, 1, 1)
-        self.masterGridLayout.addWidget(self.posBox, 1, 2, 1, 1)
-        self.setCentralWidget(self.centralwidget)
-        self.centralwidget.setLayout(self.masterGridLayout)
+        self.master_grid_layout.addWidget(self.mode_box, 0, 0, 1, 1)
+        self.master_grid_layout.addWidget(self.comm_box, 0, 1, 1, 1)
+        self.master_grid_layout.addWidget(self.log_box, 0, 2, 1, 1)
+        self.master_grid_layout.addWidget(self.gyro_box, 1, 0, 1, 1)
+        self.master_grid_layout.addWidget(self.accel_box, 1, 1, 1, 1)
+        self.master_grid_layout.addWidget(self.pos_box, 1, 2, 1, 1)
+        self.setCentralWidget(self.central_widget)
+        self.central_widget.setLayout(self.master_grid_layout)
 
         menubar = self.menuBar()
 
@@ -88,23 +94,16 @@ class Ui_MainWindow(QMainWindow):
         font.setFamily("Segoe UI Historic")
         font.setWeight(50)
         menubar.setFont(font)
-        menuFile = QtWidgets.QMenu(menubar)
-        menuFile.setObjectName("menuFile")
+        menu_file = QtWidgets.QMenu(menubar)
+        menu_file.setObjectName("menuFile")
 
-        menuFile.setTitle("File")
-        menubar.addAction(menuFile.menuAction())
-        self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMaximizeButtonHint)
+        menu_file.setTitle("File")
+        menubar.addAction(menu_file.menuAction())
+        self.setWindowFlags(
+            QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMaximizeButtonHint)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-    def closeEvent(self, event):
-        event.accept()
+    def close_event(self, event):
+        self.event = event
+        self.event.accept()
         sys.exit()
-
-if __name__ == "__main__":
-    app = QApplication([])
-    form = Ui_MainWindow()
-    form.show()
-    form.update()
-    while True:
-        QtWidgets.QApplication.processEvents()
-        time.sleep(0.05)

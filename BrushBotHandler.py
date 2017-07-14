@@ -1,4 +1,7 @@
+"""Handles BrushBot - Python communications"""
+
 import socket
+
 
 class BrushBotHandler(object):
 
@@ -15,40 +18,45 @@ class BrushBotHandler(object):
             2: Automatic -> Controlled via Neural Net pipeline.
     """
 
-    def __init__(self, deviceAddress, port, dataPoints, mode):
-        self.deviceAddress = deviceAddress
-        assert isinstance(deviceAddress, str), "Invalid Device Address, not a string"
+    def __init__(self, device_address, port, data_points, mode):
+        self.device_address = device_address
+        assert isinstance(device_address, str), "Invalid Device Address, not a string"
         self.port = port
         assert isinstance(port, int), "Invalid Port, not an integer"
         self.mode = mode
         assert mode == 1 or mode == 2, "Invalid Mode, must be either 1 or 2"
-        self.dataPoints = dataPoints
-        assert isinstance(dataPoints,int), "Invalid Datapoint Numbers, not an integer"
+        self.data_points = data_points
+        assert isinstance(data_points, int), "Invalid Datapoint Numbers, not an integer"
+        self.sock = None
+        self.log_path = None
 
-    def write_To_Log(self,data, logPath):
-        "Log anything"
-        with open(logPath, 'a') as f:
-            f.write(data + '\n')
-            f.close()
+    def write_to_log(self, data, log_path):
+        """Log anything to a file"""
+        self.log_path = log_path
+        with open(self.log_path, 'a') as log_file:
+            log_file.write(data + '\n')
+            log_file.close()
 
-    def sendMessage(self,string,receive=True):
-        "Send message to BrushBot, detect connection issues"
-        self.sock = socket.socket(socket.AF_INET,  # Internet
-                             socket.SOCK_DGRAM)  # UDP
+    def send_message(self, string, receive=True):
+        """Send message to BrushBot, detect connection issues"""
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             self.sock.settimeout(1.0)
-            self.sock.sendto(bytes(string, encoding='utf-8'), (self.deviceAddress, self.port))
-            data, addr = self.sock.recvfrom(1024)
+            self.sock.sendto(bytes(string, encoding='utf-8'), (self.device_address, self.port))
+            data, address = self.sock.recvfrom(1024)
 
             if receive:
-                return data,addr
-        except:
+                return data, address
+        except TimeoutError:
+            if receive:
+                return None, None
+        except socket.timeout:
             if receive:
                 return None, None
 
-    def processData(self,string):
-        "Transform a string of integer into a list of integers"
+    def process_data(self, string):
+        """Transform a string of integer into a list of integers"""
         received = string.split()
         received = [float(i) for i in received]
-        if len(received) == self.dataPoints:
+        if len(received) == self.data_points:
             return received

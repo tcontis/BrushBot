@@ -1,46 +1,70 @@
-from BrushBotHandler import BrushBotHandler
-from GamePadHandler import GamePadHandler
+"""Class that runs entire BrushBot project"""
+
+import time
+import datetime
 import UI
 from PyQt5.Qt import QApplication
 import PyQt5.QtWidgets
-import time,sys,datetime
+import PyQt5
+from BrushBotHandler import BrushBotHandler
+from GamePadHandler import GamePadHandler
+
 
 class Main(object):
     """
     Main Class
     """
 
-    def __init__(self, logPath):
-        self.logPath = logPath
+    def __init__(self, log_path):
+        self.log_path = log_path
+        self.app = None
+        self.form = None
+        self.start = None
+        self.previous_gyro = 0
+        self.previous_accel = 0
+        self.previous_pos = 0
+        self.ip = None
+        self.port = None
+        self.vendor_id = None
+        self.product_id = None
+        self.brush_bot_handler = None
+        self.game_pad_handler = None
+        self.address = None
+        self.motor1 = 0
+        self.motor2 = 0
+        self.data = None
 
-    def createWindow(self):
+    def create_window(self):
+        """Creates a window and application"""
         self.app = QApplication([])
-        self.form = UI.Ui_MainWindow()
+        self.form = UI.UiMainWindow()
         self.form.show()
         self.form.update()
         self.start = time.time()
-        self.prevGyro = 0
-        self.prevAccel = 0
-        self.prevPos = 0
 
-    def initializeHandlers(self,ip,port,vID,pID):
+    def initializeHandlers(self, ip, port, vendor_id, product_id):
+        """Creates BrushBot and GamePad Handlers"""
         self.ip = ip
         self.port = port
-        self.vID = vID
-        self.pID = pID
-        self.bb = BrushBotHandler(ip, port, 3, 1)
-        self.gph = GamePadHandler(vID,pID)
+        self.vendor_id = vendor_id
+        self.product_id = product_id
+        self.brush_bot_handler = BrushBotHandler(ip, port, 3, 1)
+        self.game_pad_handler = GamePadHandler(self.vendor_id, self.product_id)
 
-    def log(self,text):
-        self.bb.write_To_Log(text,self.logPath)
+    def log(self, text):
+        """Quickly Logs test"""
+        self.brush_bot_handler.write_to_log(text, self.log_path)
 
-    def windowLog(self,text):
-        self.form.logText.appendPlainText(text)
+    def window_log(self, text):
+        """Logs information to log window"""
+        self.form.log_text.appendPlainText(text)
 
-    def windowComm(self,text):
-        self.form.commText.appendPlainText(text)
+    def window_comm(self, text):
+        """Logs information to comm window"""
+        self.form.comm_text.appendPlainText(text)
 
-    def gyroPlot(self,textfile):
+    def gyro_plot(self, textfile):
+        """Plots data on gyroscope plot"""
         xs, ys = [], []
         for line in open(textfile, 'r').readlines():
             x, y = line.split(',')
@@ -48,9 +72,10 @@ class Main(object):
             ys.append(float(y))
         xs = xs[-300:]
         ys = ys[-300:]
-        self.form.gyroPlot.plotItem.plot(xs,ys,symbol='o',pen='r',clear=True)
+        self.form.gyro_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
 
-    def accelPlot(self,textfile):
+    def accel_plot(self, textfile):
+        """Plots data on accelerometer plot"""
         xs, ys = [], []
         for line in open(textfile, 'r').readlines():
             x, y = line.split(',')
@@ -58,9 +83,10 @@ class Main(object):
             ys.append(float(y))
         xs = xs[-300:]
         ys = ys[-300:]
-        self.form.accelPlot.plotItem.plot(xs,ys,symbol='o',pen='r',clear=True)
+        self.form.accel_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
 
-    def posPlot(self,textfile):
+    def pos_plot(self, textfile):
+        """Plots data on position plot"""
         xs, ys = [], []
         for line in open(textfile, 'r').readlines():
             x, y = line.split(',')
@@ -68,84 +94,89 @@ class Main(object):
             ys.append(float(y))
         xs = xs[-300:]
         ys = ys[-300:]
-        self.form.posPlot.plotItem.plot(xs,ys,symbol='o',pen='r',clear=True)
+        self.form.pos_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
 
-    def processData(self):
+    def process_data(self):
+        """Processes incoming data"""
         open("gyro.txt", "a").write(
-            "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[0])) - self.prevGyro))
+            "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[0])) - self.previous_gyro))
         open("accel.txt", "a").write(
-            "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[1])) - self.prevAccel))
+            "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[1])) - self.previous_accel))
         open("pos.txt", "a").write(
-            "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[2])) - self.prevPos))
-        self.gyroPlot('gyro.txt')
-        self.accelPlot('accel.txt')
-        self.posPlot('pos.txt')
-        self.prevGyro = round(float(self.data.split()[0]), 3)
-        self.prevAccel = round(float(self.data.split()[1]), 3)
-        self.prevPos = round(float(self.data.split()[2]), 3)
+            "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[2])) - self.previous_pos))
+        self.gyro_plot('gyro.txt')
+        self.accel_plot('accel.txt')
+        self.pos_plot('pos.txt')
+        self.previous_gyro = round(float(self.data.split()[0]), 3)
+        self.previous_accel = round(float(self.data.split()[1]), 3)
+        self.previous_pos = round(float(self.data.split()[2]), 3)
 
-    def mainLoop(self):
+    def main_loop(self):
+        """The main function to loop"""
         d = {"Manual": 1, "Automatic": 2}
-        self.bb.mode = d.get(self.form.modeSelectionComboBox.currentText())
-        if self.bb.mode == 1:
-            if self.gph.connected == False:
+        self.brush_bot_handler.mode = d.get(self.form.mode_selection_combo_box.currentText())
+        if self.brush_bot_handler.mode == 1:
+            if not self.game_pad_handler.connected:
                 try:
-                    self.windowLog("BrushBot Now Running in Manual Mode")
+                    self.window_log("BrushBot Now Running in Manual Mode")
                     self.log("BrushBot Now Running in Manual Mode")
-                    self.windowLog("Connecting to Gamepad...")
+                    self.window_log("Connecting to Gamepad...")
                     self.log("Connecting to Gamepad...")
-                    self.gph.connectToDevice()
-                    self.windowLog("GamePad Connected")
+                    self.game_pad_handler.connect_to_device()
+                    self.window_log("GamePad Connected")
                     self.log("GamePad Connected")
-                except Exception as e:
-                    self.windowLog("Error, could not find GamePad? Is it connected?")
+                    self.motor1 = -((self.game_pad_handler.leftJoyStickY * 2) - 256)
+                    self.motor2 = -((self.game_pad_handler.rightJoyStickY * 2) - 256)
+                    if self.motor1 < 0:
+                        self.motor1 = 0
+                    if self.motor2 < 0:
+                        self.motor2 = 0
+                    self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
+                    self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
+                    self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
+                except TimeoutError:
+                    self.window_log("Error communicating with BrushBot")
+                except AssertionError:
+                    self.window_log("Error, could not find GamePad? Is it connected?")
                     self.log("Error, could not find GamePad? Is it connected?")
-                    self.form.modeSelectionComboBox.setCurrentIndex(1)
+                    self.form.mode_selection_combo_box.setCurrentIndex(1)
 
-            self.motor1, self.motor2 = -((self.gph.leftJoyStickY * 2) - 256), -((self.gph.rightJoyStickY * 2) - 256)
-            if self.motor1 < 0:
-                self.motor1 = 0
-            if self.motor2 < 0:
-                self.motor2 = 0
-            self.windowComm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-            self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-            self.data, self.addr = self.bb.sendMessage("%s %s" % (self.motor1, self.motor2), True)
-            if self.data == None and self.addr == None:
-                self.windowComm("Error communicating with BrushBot.")
+            if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
+                self.window_comm("Error communicating with BrushBot.")
                 self.log("Error communicating with BrushBot.")
             else:
-                self.windowComm("%s ESP: %s" % (datetime.datetime.now(), self.data))
-                self.processData()
+                self.window_comm("%s ESP: %s" % (datetime.datetime.now(), self.data))
+                self.process_data()
                 self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
-        elif self.bb.mode == 2:
-            if self.gph.connected:
-                self.windowLog("BrushBot Now Running in Automatic Mode")
+        elif self.brush_bot_handler.mode == 2:
+            if self.game_pad_handler.connected:
+                self.window_log("BrushBot Now Running in Automatic Mode")
                 self.log("BrushBot Now Running in Automatic Mode")
-                self.gph.disconnectFromDevice()
+                self.game_pad_handler.disconnect_from_device()
             self.motor1 = 0
             self.motor2 = 0
-            self.windowComm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
+            self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
             self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-            self.data, self.addr = self.bb.sendMessage("%s %s" % (self.motor1, self.motor2), True)
-            if self.data == None and self.addr == None:
-                self.windowComm("Error communicating with BrushBot.")
+            self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
+            if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
+                self.window_comm("Error communicating with BrushBot.")
                 self.log("Error communicating with BrushBot.")
             else:
-                self.windowComm("%s ESP: %s" % (datetime.datetime.now(), self.data))
-                self.processData()
+                self.window_comm("%s ESP: %s" % (datetime.datetime.now(), self.data))
+                self.process_data()
                 self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
 
         PyQt5.QtWidgets.QApplication.processEvents()
         time.sleep(0.05)
 
 if __name__ == '__main__':
-    open('gyro.txt','w+').write("0,0\n")
+    open('gyro.txt', 'w+').write("0,0\n")
     open('accel.txt', 'w+').write("0,0\n")
     open('pos.txt', 'w+').write("0,0\n")
     ip, port = "192.168.1.23", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main(r"C:\Users\thoma_000\Desktop\BrushBot\log.txt")
-    m.createWindow()
-    m.initializeHandlers(ip,port,vendor_id,product_id)
+    m.create_window()
+    m.initializeHandlers(ip, port, vendor_id, product_id)
     while True:
-        m.mainLoop()
+        m.main_loop()

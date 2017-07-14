@@ -1,15 +1,9 @@
-from keras.models import Sequential
-from keras.layers import Dense, Activation,Dropout,TimeDistributed
-from keras.layers import LSTM, BatchNormalization, GRU
-from keras.models import load_model
-#from sklearn.cross_validation import train_test_split
+from keras.models import Sequential, load_model
+from keras.layers import Dense, Activation,Dropout,TimeDistributed, LSTM, BatchNormalization, GRU
 from keras.optimizers import RMSprop
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import random
-import math
-random.seed(10)
+
 
 class DecisionNetwork(object):
 
@@ -21,6 +15,7 @@ class DecisionNetwork(object):
     def build(self, step,length):
         self.length = length
         self.step = step
+
         self.movements = []
         self.next_movements = []
         for i in range(0, len(self.inputs)-length, step):
@@ -74,11 +69,23 @@ def train_test_split(X,Y, test_size=0.15):
 if __name__ == "__main__":
     #Generate structured data with noise
     inputs = []
-    for i in range(30000):
+    """for i in range(30000):
         gyro = 10*((math.sin(i)**3)-6*(math.cos(i)*(math.sin(i)**2))+math.sin(i))+random.uniform(-2,2)
         pos = (math.cos(i)**2)*math.sin(i)+random.uniform(-1,1)
         accel = (math.cos(i)**3)+math.sin(i)+random.uniform(-0.5,0.5)
-        inputs.append([gyro,pos,accel])
+        inputs.append([gyro,pos,accel])"""
+    gs, acs, ps = [], [], []
+    for line in open('gyro.txt', 'r').readlines():
+        time, value = line.split(',')
+        gs.append(value)
+    for line in open('accel.txt', 'r').readlines():
+        time, value = line.split(',')
+        acs.append(value)
+    for line in open('pos.txt', 'r').readlines():
+        time, value = line.split(',')
+        ps.append(value)
+    for g,a,p in zip(gs,acs,ps):
+        inputs.append([g,a,p])
 
     nn = DecisionNetwork(1,2,inputs)
     nn.build(1, 100)
