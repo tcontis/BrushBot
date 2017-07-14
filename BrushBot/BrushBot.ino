@@ -14,8 +14,8 @@ long randomNumber3;
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
 
-int leftMotorPin = 16;
-int rightMotorPin = 0;
+int leftMotorPin = 0;
+int rightMotorPin = 16;
 
 void setup() {
   // put your setup code here, to run once:
@@ -74,12 +74,9 @@ void loop() {
         strncpy(rightMotor, receivedPacket+i,strlen(receivedPacket));
       }
     }
-    //int l = atoi(leftMotor);
+    int l = atoi(leftMotor);
     int r = atoi(rightMotor);
-    //Serial.print(l + " ");
-    Serial.println(r);
-    digitalWrite(r,rightMotorPin);
-    digitalWrite(r,leftMotorPin);
-    
+    analogWrite(leftMotorPin,l);
+    analogWrite(rightMotorPin,r);
   }
 }

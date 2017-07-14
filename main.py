@@ -102,7 +102,11 @@ class Main(object):
                     self.log("Error, could not find GamePad? Is it connected?")
                     self.form.modeSelectionComboBox.setCurrentIndex(1)
 
-            self.motor1, self.motor2 = -((self.gph.leftJoyStickY * 2) - 255), -((self.gph.rightJoyStickY * 2) - 255)
+            self.motor1, self.motor2 = -((self.gph.leftJoyStickY * 2) - 256), -((self.gph.rightJoyStickY * 2) - 256)
+            if self.motor1 < 0:
+                self.motor1 = 0
+            if self.motor2 < 0:
+                self.motor2 = 0
             self.windowComm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
             self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
             self.data, self.addr = self.bb.sendMessage("%s %s" % (self.motor1, self.motor2), True)
