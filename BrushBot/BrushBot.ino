@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include "FS.h"
 
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "GRITS_Lab";
+const char* password = "grits434!";
 char reply[] = "1.5 2.0 4.0 1";
 WiFiUDP Udp;
 unsigned int localUdpPort = 8888;
