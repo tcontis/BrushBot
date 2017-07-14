@@ -15,7 +15,7 @@ class Ui_MainWindow(QMainWindow):
 
     def setupUi(self):
         #Size window to default dimensions
-        self.resize(900, 800)
+        self.resize(1800, 8900)
         self.setWindowTitle("BrushBot")
 
         #Create a central Widget

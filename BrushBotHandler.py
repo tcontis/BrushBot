@@ -32,13 +32,19 @@ class BrushBotHandler(object):
             f.close()
 
     def sendMessage(self,string,receive=True):
-        "Send message to BrushBot"
+        "Send message to BrushBot, detect connection issues"
         self.sock = socket.socket(socket.AF_INET,  # Internet
                              socket.SOCK_DGRAM)  # UDP
-        self.sock.sendto(bytes(string, encoding='utf-8'), (self.deviceAddress, self.port))
-        data, addr = self.sock.recvfrom(1024)
-        if receive:
-            return data,addr
+        try:
+            self.sock.settimeout(1.0)
+            self.sock.sendto(bytes(string, encoding='utf-8'), (self.deviceAddress, self.port))
+            data, addr = self.sock.recvfrom(1024)
+
+            if receive:
+                return data,addr
+        except:
+            if receive:
+                return None, None
 
     def processData(self,string):
         "Transform a string of integer into a list of integers"

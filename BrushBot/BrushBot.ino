@@ -1,5 +1,8 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdio.h>
 #include "FS.h"
 
 const char* ssid = "";
@@ -9,8 +12,8 @@ WiFiUDP Udp;
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
 
-int leftMotorPin = 5;
-int rightMotorPin = 3;
+int leftMotorPin = 16;
+int rightMotorPin = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -48,5 +51,20 @@ void loop() {
     }
     Serial.printf("UDP packet contents: %s\n", receivedPacket);
     writePacket(reply);
+    char leftMotor[20];
+    char rightMotor[20];
+    for(int i = 0;i < strlen(receivedPacket);i++){
+      if (receivedPacket[i] == ' '){
+        strncpy(leftMotor, receivedPacket,i);
+        strncpy(rightMotor, receivedPacket+i,strlen(receivedPacket));
+      }
+    }
+    //int l = atoi(leftMotor);
+    int r = atoi(rightMotor);
+    //Serial.print(l + " ");
+    Serial.println(r);
+    digitalWrite(r,rightMotorPin);
+    digitalWrite(r,leftMotorPin);
+    
   }
 }
