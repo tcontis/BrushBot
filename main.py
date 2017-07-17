@@ -42,7 +42,7 @@ class Main(object):
         self.form.update()
         self.start = time.time()
 
-    def initializeHandlers(self, ip, port, vendor_id, product_id):
+    def initialize_handlers(self, ip, port, vendor_id, product_id):
         """Creates BrushBot and GamePad Handlers"""
         self.ip = ip
         self.port = port
@@ -125,22 +125,22 @@ class Main(object):
                     self.game_pad_handler.connect_to_device()
                     self.window_log("GamePad Connected")
                     self.log("GamePad Connected")
-                    self.motor1 = -((self.game_pad_handler.leftJoyStickY * 2) - 256)
-                    self.motor2 = -((self.game_pad_handler.rightJoyStickY * 2) - 256)
-                    if self.motor1 < 0:
-                        self.motor1 = 0
-                    if self.motor2 < 0:
-                        self.motor2 = 0
-                    self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-                    self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-                    self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
+
                 except TimeoutError:
                     self.window_log("Error communicating with BrushBot")
                 except AssertionError:
                     self.window_log("Error, could not find GamePad? Is it connected?")
                     self.log("Error, could not find GamePad? Is it connected?")
                     self.form.mode_selection_combo_box.setCurrentIndex(1)
-
+            self.motor1 = -((self.game_pad_handler.leftJoyStickY * 2) - 256)
+            self.motor2 = -((self.game_pad_handler.rightJoyStickY * 2) - 256)
+            if self.motor1 < 0:
+                self.motor1 = 0
+            if self.motor2 < 0:
+                self.motor2 = 0
+            self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
+            self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
+            self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
             if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
                 self.window_comm("Error communicating with BrushBot.")
                 self.log("Error communicating with BrushBot.")
@@ -167,16 +167,17 @@ class Main(object):
                 self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
 
         PyQt5.QtWidgets.QApplication.processEvents()
-        time.sleep(0.05)
+        time.sleep(0.01)
 
 if __name__ == '__main__':
     open('gyro.txt', 'w+').write("0,0\n")
     open('accel.txt', 'w+').write("0,0\n")
     open('pos.txt', 'w+').write("0,0\n")
-    ip, port = "192.168.1.23", 8888
+    ip, port = "192.168.2.103", 8888
     vendor_id, product_id = 0x046d, 0xc216
-    m = Main(r"C:\Users\thoma_000\Desktop\BrushBot\log.txt")
+    m = Main("log.txt")
     m.create_window()
-    m.initializeHandlers(ip, port, vendor_id, product_id)
+    m.initialize_handlers(ip, port, vendor_id, product_id)
     while True:
         m.main_loop()
+

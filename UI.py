@@ -2,14 +2,9 @@
 
 from PyQt5.QtCore import QObject
 import sys
-import warnings
 import pyqtgraph as pg
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import (QGridLayout, QMainWindow)
-
-warnings.simplefilter("ignore", DeprecationWarning)
-
 
 class UiMainWindow(QMainWindow):
     """The Main Window for the BrushBot Project"""
@@ -19,8 +14,9 @@ class UiMainWindow(QMainWindow):
         super().__init__()
 
         # Size window to default dimensions
-        self.resize(1800, 8900)
+        self.resize(1800, 900)
         self.setWindowTitle("BrushBot")
+
 
         # Create a central Widget
         self.central_widget = QtWidgets.QWidget(self)

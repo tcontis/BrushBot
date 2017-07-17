@@ -2,7 +2,6 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation,Dropout,TimeDistributed, LSTM, BatchNormalization, GRU
 from keras.optimizers import RMSprop
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class DecisionNetwork(object):

@@ -39,20 +39,22 @@ class BrushBotHandler(object):
 
     def send_message(self, string, receive=True):
         """Send message to BrushBot, detect connection issues"""
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
-            self.sock.settimeout(1.0)
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock.settimeout(0.25)
+            #self.sock.setblocking(False)
             self.sock.sendto(bytes(string, encoding='utf-8'), (self.device_address, self.port))
-            data, address = self.sock.recvfrom(1024)
-
+            data, address = self.sock.recvfrom(32)
             if receive:
                 return data, address
-        except TimeoutError:
-            if receive:
-                return None, None
         except socket.timeout:
             if receive:
                 return None, None
+        except BlockingIOError:
+            if receive:
+                return None, None
+        finally:
+            self.sock.close()
 
     def process_data(self, string):
         """Transform a string of integer into a list of integers"""

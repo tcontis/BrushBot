@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "FS.h"
 
-const char* ssid = "GRITS_Lab";
+const char* ssid = "GRITS_Downstairs";
 const char* password = "grits434!";
 WiFiUDP Udp;
 long randomNumber;
@@ -32,7 +32,7 @@ void setup() {
   Serial.println(" connected");
   Udp.begin(localUdpPort);
   Serial.printf("Now listening at IP %s, UDP port %d\n", WiFi.localIP().toString().c_str(), localUdpPort);
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(4));
 }
 
 void writePacket(char s[]){
