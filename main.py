@@ -42,13 +42,13 @@ class Main(object):
         self.form.update()
         self.start = time.time()
 
-    def initialize_handlers(self, ip, port, vendor_id, product_id):
+    def initialize_handlers(self, _ip, _port, _vendor_id, _product_id):
         """Creates BrushBot and GamePad Handlers"""
-        self.ip = ip
-        self.port = port
-        self.vendor_id = vendor_id
-        self.product_id = product_id
-        self.brush_bot_handler = BrushBotHandler(ip, port, 3, 1)
+        self.ip = _ip
+        self.port = _port
+        self.vendor_id = _vendor_id
+        self.product_id = _product_id
+        self.brush_bot_handler = BrushBotHandler(self.ip, self.port, 3, 1)
         self.game_pad_handler = GamePadHandler(self.vendor_id, self.product_id)
 
     def log(self, text):
@@ -167,7 +167,7 @@ class Main(object):
                 self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
 
         PyQt5.QtWidgets.QApplication.processEvents()
-        time.sleep(0.01)
+        time.sleep(0.0001)
 
 if __name__ == '__main__':
     open('gyro.txt', 'w+').write("0,0\n")
@@ -180,4 +180,3 @@ if __name__ == '__main__':
     m.initialize_handlers(ip, port, vendor_id, product_id)
     while True:
         m.main_loop()
-
