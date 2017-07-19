@@ -16,7 +16,7 @@ class UiMainWindow(QMainWindow):
         # Size window to default dimensions
         self.resize(1800, 900)
         self.setWindowTitle("BrushBot")
-
+        self.showMaximized()
 
         # Create a central Widget
         self.central_widget = QtWidgets.QWidget(self)
