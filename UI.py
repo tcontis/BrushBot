@@ -6,12 +6,13 @@ import pyqtgraph as pg
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import (QGridLayout, QMainWindow)
 
+
 class UiMainWindow(QMainWindow):
     """The Main Window for the BrushBot Project"""
 
     def __init__(self):
         """Initialize Window"""
-        super().__init__()
+        super(UiMainWindow, self).__init__([])
         self.setupUi()
 
     def setupUi(self):
@@ -108,7 +109,7 @@ class UiMainWindow(QMainWindow):
             QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMaximizeButtonHint)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-    def close_event(self, event):
+    def closeEvent(self, event):
         close = QtWidgets.QMessageBox.question(self, 'Exit', "Are you sure you want to quit?",
                                                QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         if close == QtWidgets.QMessageBox.Yes:

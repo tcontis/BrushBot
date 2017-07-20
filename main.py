@@ -10,12 +10,13 @@ from GamePadHandler import GamePadHandler
 from DecisionNetwork import DecisionNetwork, DataProcessor
 
 
-class Main(object):
+class Main(QApplication):
     """
     Main Class
     """
 
     def __init__(self, log_path):
+        super(Main, self).__init__([])
         self.log_path = log_path
         self.app = None
         self.form = None
@@ -42,11 +43,11 @@ class Main(object):
 
     def create_window(self):
         """Creates a window and application"""
-        self.app = QApplication([])
         self.form = UI.UiMainWindow()
         self.form.show()
         self.form.update()
         self.start = time.time()
+
 
     def initialize_handlers(self, _ip, _port, _vendor_id, _product_id):
         """Creates BrushBot and GamePad Handlers"""
@@ -64,10 +65,12 @@ class Main(object):
     def window_log(self, text):
         """Logs information to log window"""
         self.form.log_text.appendPlainText(text)
+        self.processEvents()
 
     def window_comm(self, text):
         """Logs information to comm window"""
         self.form.comm_text.appendPlainText(text)
+        self.processEvents()
 
     def gyro_plot(self, textfile):
         """Plots data on gyroscope plot"""
@@ -79,6 +82,7 @@ class Main(object):
         xs = xs[-300:]
         ys = ys[-300:]
         self.form.gyro_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
+        self.processEvents()
 
     def accel_plot(self, textfile):
         """Plots data on accelerometer plot"""
@@ -90,6 +94,7 @@ class Main(object):
         xs = xs[-300:]
         ys = ys[-300:]
         self.form.accel_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
+        self.processEvents()
 
     def pos_plot(self, textfile):
         """Plots data on position plot"""
@@ -101,6 +106,7 @@ class Main(object):
         xs = xs[-300:]
         ys = ys[-300:]
         self.form.pos_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
+        self.processEvents()
 
     def plot_data(self):
         self.gyro_plot('logs/gyro.txt')
@@ -128,6 +134,7 @@ class Main(object):
             """The main function to loop"""
             d = {"Manual": 1, "Automatic": 2}
             self.brush_bot_handler.mode = d.get(self.form.mode_selection_combo_box.currentText())
+            self.processEvents()
             if self.brush_bot_handler.mode == 1:
                 if not self.game_pad_handler.connected:
                     try:
@@ -144,6 +151,7 @@ class Main(object):
                         self.window_log("Error, could not find GamePad? Is it connected?")
                         self.log("Error, could not find GamePad? Is it connected?")
                         self.form.mode_selection_combo_box.setCurrentIndex(1)
+                        self.processEvents()
                 self.motor1 = -((self.game_pad_handler.leftJoyStickY * 2) - 256)
                 self.motor2 = -((self.game_pad_handler.rightJoyStickY * 2) - 256)
                 if self.motor1 < 0:
@@ -180,13 +188,12 @@ class Main(object):
                 if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
                     self.window_comm("Error communicating with BrushBot.")
                     self.log("Error communicating with BrushBot.")
-                    self.app.processEvents()
                 else:
                     self.process_data()
                     self.window_comm("%s ESP: %s" % (datetime.datetime.now(), self.data))
                     self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
-                    self.plot_data()
-            self.app.processEvents()
+                self.plot_data()
+            self.processEvents()
             time.sleep(0.00001)
 
 if __name__ == '__main__':
