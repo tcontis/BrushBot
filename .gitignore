@@ -6,3 +6,4 @@ log.txt
 *.txt
 *.h5
 logs/
+models/
