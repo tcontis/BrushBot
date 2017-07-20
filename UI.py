@@ -12,6 +12,9 @@ class UiMainWindow(QMainWindow):
     def __init__(self):
         """Initialize Window"""
         super().__init__()
+        self.setupUi()
+
+    def setupUi(self):
 
         # Size window to default dimensions
         self.resize(1800, 900)
@@ -59,6 +62,7 @@ class UiMainWindow(QMainWindow):
         self.mode_selection_group_box_horizontal_layout = QtWidgets.QHBoxLayout(self.mode_selection_group_box)
         self.mode_selection_group_box_horizontal_layout.addWidget(self.mode_label)
         self.mode_selection_group_box_horizontal_layout.addWidget(self.mode_selection_combo_box)
+        self.mode_vertical_layout.addWidget(self.log_box)
 
         self.comm_vertical_layout = QtWidgets.QVBoxLayout(self.comm_box)
         self.comm_vertical_layout.addWidget(self.comm_text)
@@ -77,7 +81,7 @@ class UiMainWindow(QMainWindow):
 
         self.master_grid_layout.addWidget(self.mode_box, 0, 0, 1, 1)
         self.master_grid_layout.addWidget(self.comm_box, 0, 1, 1, 1)
-        self.master_grid_layout.addWidget(self.log_box, 0, 2, 1, 1)
+        #self.master_grid_layout.addWidget(self.log_box, 0, 2, 1, 1)
         self.master_grid_layout.addWidget(self.gyro_box, 1, 0, 1, 1)
         self.master_grid_layout.addWidget(self.accel_box, 1, 1, 1, 1)
         self.master_grid_layout.addWidget(self.pos_box, 1, 2, 1, 1)
@@ -95,11 +99,20 @@ class UiMainWindow(QMainWindow):
 
         menu_file.setTitle("File")
         menubar.addAction(menu_file.menuAction())
+
+        actionExit = QtWidgets.QAction(self)
+        actionExit.setShortcut('Ctrl+Q')
+        actionExit.triggered.connect(self.close)
+        menubar.addAction(actionExit)
         self.setWindowFlags(
             QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMaximizeButtonHint)
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def close_event(self, event):
-        self.event = event
-        self.event.accept()
-        sys.exit()
+        close = QtWidgets.QMessageBox.question(self, 'Exit', "Are you sure you want to quit?",
+                                               QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if close == QtWidgets.QMessageBox.Yes:
+            event.accept()
+            sys.exit()
+        else:
+            event.ignore()

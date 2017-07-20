@@ -3,7 +3,6 @@
 from keras.models import load_model, Sequential
 from keras.layers import Dropout, LSTM, Activation, Dense
 from keras.optimizers import RMSprop
-import numpy as np
 
 
 class DataProcessor(object):
@@ -57,18 +56,18 @@ class DataProcessor(object):
 class DecisionNetwork(object):
     """Decision Network that guides BrushBot's actions."""
 
-    def __init__(self, inputs, outputs, savefile, epochs):
-        self.inputs = inputs
-        self.outputs = outputs
+    def __init__(self, savefile):
         self.savefile = savefile
-        self.epochs = epochs
         self.model = None
         self.optimizer = None
 
-    def create_model(self, load=False):
+    def create_model(self, inputs, outputs, epochs, load=False):
         if load:
             self.load_model()
         else:
+            self.inputs = inputs
+            self.outputs = outputs
+            self.epochs = epochs
             self.model = Sequential()
             self.model.add(LSTM(100, input_shape=(None, len(self.inputs[0][0])), return_sequences=True))
             self.model.add(Dropout(0.2))
@@ -97,13 +96,3 @@ class DecisionNetwork(object):
 
     def predict(self, to_predict):
         return self.model.predict(to_predict)
-
-if __name__ == '__main__':
-    dp = DataProcessor("relative_pos.txt", "pos.txt", "accel.txt", "gyro.txt")
-    dp.load_data(3, False)
-    sequences, next_sequences = dp.preprocess(10, 1)
-    dn = DecisionNetwork(sequences, next_sequences, "model.h5", 100)
-    dn.create_model()
-    dn.train_model()
-    print(dn.predict(np.expand_dims(sequences[1], axis=0)))
-    print(sequences[2][-1])

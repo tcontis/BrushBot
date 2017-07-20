@@ -5,3 +5,4 @@ tests.py
 log.txt
 *.txt
 *.h5
+logs/

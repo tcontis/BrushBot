@@ -4,10 +4,10 @@ import time
 import datetime
 import UI
 from PyQt5.Qt import QApplication
-import PyQt5.QtWidgets
-import PyQt5
+import numpy as np
 from BrushBotHandler import BrushBotHandler
 from GamePadHandler import GamePadHandler
+from DecisionNetwork import DecisionNetwork, DataProcessor
 
 
 class Main(object):
@@ -33,6 +33,12 @@ class Main(object):
         self.motor1 = 0
         self.motor2 = 0
         self.data = None
+        self.sequences = []
+        self.next_sequences = []
+        self.dn = DecisionNetwork("model.h5")
+        self.dn.load_model()
+        self.dp = None
+        self.decision = [0, 0, 0, 0]
 
     def create_window(self):
         """Creates a window and application"""
@@ -98,20 +104,20 @@ class Main(object):
 
     def process_data(self):
         """Processes incoming data"""
-        open("gyro.txt", "a").write(
+        open("logs/gyro.txt", "a").write(
             "%s,%s\n" % (
                 round(time.time() - self.start, 3), round(float(self.data.split()[0])) - self.previous_gyro))
-        open("accel.txt", "a").write(
+        open("logs/accel.txt", "a").write(
             "%s,%s\n" % (
                 round(time.time() - self.start, 3), round(float(self.data.split()[1])) - self.previous_accel))
-        open("pos.txt", "a").write(
+        open("logs/pos.txt", "a").write(
             "%s,%s\n" % (
                 round(time.time() - self.start, 3), round(float(self.data.split()[2])) - self.previous_pos))
-        open("relative_pos.txt", "a").write(
+        open("logs/relative_pos.txt", "a").write(
             "%s,%s\n" % (round(time.time() - self.start, 3), round(float(self.data.split()[2]))))
-        self.gyro_plot('gyro.txt')
-        self.accel_plot('accel.txt')
-        self.pos_plot('pos.txt')
+        self.gyro_plot('logs/gyro.txt')
+        self.accel_plot('logs/accel.txt')
+        self.pos_plot('logs/pos.txt')
         self.previous_gyro = round(float(self.data.split()[0]), 3)
         self.previous_accel = round(float(self.data.split()[1]), 3)
         self.previous_pos = round(float(self.data.split()[2]), 3)
@@ -149,38 +155,46 @@ class Main(object):
                     self.window_comm("Error communicating with BrushBot.")
                     self.log("Error communicating with BrushBot.")
                 else:
+
                     self.window_comm("%s ESP: %s" % (datetime.datetime.now(), self.data))
                     self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
                     self.process_data()
-
             elif self.brush_bot_handler.mode == 2:
+
                 if self.game_pad_handler.connected:
                     self.window_log("BrushBot Now Running in Automatic Mode")
                     self.log("BrushBot Now Running in Automatic Mode")
                     self.game_pad_handler.disconnect_from_device()
                 self.motor1 = 0
                 self.motor2 = 0
+                if len(open("logs/relative_pos.txt").readlines()) >= 11:
+                    self.dp = DataProcessor("logs/relative_pos.txt", "logs/pos.txt", "logs/accel.txt", "logs/gyro.txt")
+                    self.dp.load_data(3,False)
+                    self.sequences, self.next_sequences = self.dp.preprocess(10, 1)
+                    self.decision = self.dn.predict(np.expand_dims(self.sequences[-1], axis=0))
+                    self.window_log("Neural Network Decision:\n%s\nBased on:\n%s" % (self.decision, self.sequences[-1]))
                 self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
                 if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
                     self.window_comm("Error communicating with BrushBot.")
                     self.log("Error communicating with BrushBot.")
+                    self.app.processEvents()
                 else:
                     self.window_comm("%s ESP: %s" % (datetime.datetime.now(), self.data))
                     self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
                     self.process_data()
-
-            PyQt5.QtWidgets.QApplication.processEvents()
+            self.app.processEvents()
             time.sleep(0.0001)
 
 if __name__ == '__main__':
-    open('gyro.txt', 'w+').write("0,0\n")
-    open('accel.txt', 'w+').write("0,0\n")
-    open('pos.txt', 'w+').write("0,0\n")
+    open('logs/gyro.txt', 'w+').write("0,0\n")
+    open('logs/accel.txt', 'w+').write("0,0\n")
+    open('logs/pos.txt', 'w+').write("0,0\n")
+    open('logs/relative_pos.txt', 'w+').write("0,0\n")
     ip, port = "192.168.2.142", 8888
     vendor_id, product_id = 0x046d, 0xc216
-    m = Main("log.txt")
+    m = Main("logs/log.txt")
     m.create_window()
     m.initialize_handlers(ip, port, vendor_id, product_id)
     while True:
