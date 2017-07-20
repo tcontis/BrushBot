@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include "FS.h"
 
-const char* ssid = "GRITS_Downstairs";
-const char* password = "grits434!";
+const char* ssid = "THOMAS-LATTITUD 3759";
+const char* password = "16H45(n7";
 WiFiUDP Udp;
 long randomNumber;
 long randomNumber2;

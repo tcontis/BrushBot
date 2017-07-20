@@ -12,7 +12,7 @@ class UiMainWindow(QMainWindow):
 
     def __init__(self):
         """Initialize Window"""
-        super(UiMainWindow, self).__init__([])
+        super(UiMainWindow, self).__init__()
         self.setupUi()
 
     def setupUi(self):

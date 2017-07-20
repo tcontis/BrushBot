@@ -3,7 +3,7 @@
 import time
 import datetime
 import UI
-from PyQt5.Qt import QApplication
+from PyQt5.Qt import QApplication, QTimer
 import numpy as np
 from BrushBotHandler import BrushBotHandler
 from GamePadHandler import GamePadHandler
@@ -40,6 +40,7 @@ class Main(QApplication):
         self.dn.load_model()
         self.dp = None
         self.decision = [0, 0, 0, 0]
+        self.prev_time = 0
 
     def create_window(self):
         """Creates a window and application"""
@@ -47,7 +48,6 @@ class Main(QApplication):
         self.form.show()
         self.form.update()
         self.start = time.time()
-
 
     def initialize_handlers(self, _ip, _port, _vendor_id, _product_id):
         """Creates BrushBot and GamePad Handlers"""
@@ -185,6 +185,7 @@ class Main(QApplication):
                 self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
+                self.prev_time = time.time()
                 if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
                     self.window_comm("Error communicating with BrushBot.")
                     self.log("Error communicating with BrushBot.")
@@ -192,19 +193,22 @@ class Main(QApplication):
                     self.process_data()
                     self.window_comm("%s ESP: %s" % (datetime.datetime.now(), self.data))
                     self.log("%s ESP: %s" % (datetime.datetime.now(), self.data))
-                self.plot_data()
+                    self.plot_data()
             self.processEvents()
-            time.sleep(0.00001)
+            time.sleep(0.001)
 
 if __name__ == '__main__':
     open('logs/gyro.txt', 'w+').write("")
     open('logs/accel.txt', 'w+').write("")
     open('logs/pos.txt', 'w+').write("")
     open('logs/relative_pos.txt', 'w+').write("")
-    ip, port = "192.168.2.142", 8888
+    ip, port = "192.168.137.191", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main("logs/log.txt")
     m.create_window()
     m.initialize_handlers(ip, port, vendor_id, product_id)
+    t = QTimer()
+    t.timeout.connect(m.processEvents)
+    t.start(0.1)
     while True:
         m.main_loop()
