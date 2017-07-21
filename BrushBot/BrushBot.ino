@@ -3,24 +3,40 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <NewPing.h>
 #include "FS.h"
+#include "SparkFunLSM6DS3.h"
 
+//WiFi Variables
 const char* ssid = "THOMAS-LATTITUD 3759";
 const char* password = "16H45(n7";
-WiFiUDP Udp;
-long randomNumber;
-long randomNumber2;
-long randomNumber3;
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
+WiFiUDP Udp;
 
-int leftMotorPin = 0;
-int rightMotorPin = 16;
+//Motor Variables
+const int leftMotorPin = 4;
+const int rightMotorPin = 13;
+
+//Ultrasonic Variables
+const int trigPin = 12;
+const int echoPin = 14;
+const int maxDistance = 200;
+long distance;
+NewPing sonar(trigPin, echoPin, maxDistance);
+
+//IMU Variables
+float gyroZ;
+float accelY;
+LSM6DS3 brushBotIMU;
 
 void setup() {
-  // put your setup code here, to run once:
+  //Initialize Pins and IMU.
   pinMode(leftMotorPin, OUTPUT);
   pinMode(rightMotorPin, OUTPUT);
+  brushBotIMU.begin();
+  
+  //Begin serial communication and attempt to connect to wifi
   Serial.begin(115200);
   Serial.printf("Connecting to %s ", ssid);
   WiFi.begin(ssid, password);
@@ -31,10 +47,11 @@ void setup() {
   }
   Serial.println(" connected");
   Udp.begin(localUdpPort);
+  
   Serial.printf("Now listening at IP %s, UDP port %d\n", WiFi.localIP().toString().c_str(), localUdpPort);
-  randomSeed(analogRead(4));
 }
 
+//Void to write packet to address.
 void writePacket(char s[]){
   Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
   Udp.write(s);
@@ -42,16 +59,29 @@ void writePacket(char s[]){
 }
 
 void loop() {
+  //Read Ultrasonic data in centimeters
+  sonar.ping_cm();
+
+  //Read gyro data
+  gyroZ = brushBotIMU.readFloatGyroZ();
+
+  //Read accelerometer data
+  accelY = brushBotIMU.readFloatAccelY();
+
+  Serial.print("Dist: ");
+  Serial.print(distance);
+  Serial.print(" Gyro: ");
+  Serial.print(gyroZ);
+  Serial.print(" Accel: ");
+  Serial.println(accelY);
+  
   // put your main code here, to run repeatedly:
-  randomNumber = random(300);
-  randomNumber2 = random(200);
-  randomNumber3 = random(100);
   char reply[32];
   char reply2[32];
   char reply3[32];
-  sprintf(reply, "%d ",randomNumber);
-  sprintf(reply2, "%d ",randomNumber2);
-  sprintf(reply3, "%d",randomNumber3);
+  sprintf(reply, "%d ", distance);
+  sprintf(reply2, "%d ",gyroZ);
+  sprintf(reply3, "%d",accelY);
   char rep[255] = "";
   strcat(reply, reply2);
   strcat(reply, reply3);
@@ -76,7 +106,7 @@ void loop() {
     }
     int l = atoi(leftMotor);
     int r = atoi(rightMotor);
-    analogWrite(leftMotorPin,l);
-    analogWrite(rightMotorPin,r);
+    //analogWrite(leftMotorPin,l);
+    //analogWrite(rightMotorPin,r);
   }
 }
