@@ -7,7 +7,7 @@ from PyQt5.Qt import QApplication, QTimer
 import numpy as np
 from BrushBotHandler import BrushBotHandler
 from GamePadHandler import GamePadHandler
-from DecisionNetwork import DecisionNetwork, DataProcessor
+#from DecisionNetwork import DecisionNetwork, DataProcessor
 
 
 class Main(QApplication):
@@ -36,9 +36,9 @@ class Main(QApplication):
         self.data = None
         self.sequences = []
         self.next_sequences = []
-        self.dn = DecisionNetwork("models/model.h5")
-        self.dn.load_model()
-        self.dp = None
+        #self.dn = DecisionNetwork("models/model.h5")
+        #self.dn.load_model()
+        #self.dp = None
         self.decision = [0, 0, 0, 0]
         self.prev_time = 0
 
@@ -117,18 +117,18 @@ class Main(QApplication):
         """Processes incoming data"""
         open("logs/gyro.txt", "a").write(
             "%s,%s\n" % (
-                round(time.time() - self.start, 4), round(float(self.data.split()[0])) - self.previous_gyro))
+                round(time.time() - self.start, 4), round(float(self.data.split()[1])) - self.previous_gyro))
         open("logs/accel.txt", "a").write(
             "%s,%s\n" % (
-                round(time.time() - self.start, 4), round(float(self.data.split()[1])) - self.previous_accel))
+                round(time.time() - self.start, 4), round(float(self.data.split()[2])) - self.previous_accel))
         open("logs/pos.txt", "a").write(
             "%s,%s\n" % (
-                round(time.time() - self.start, 4), round(float(self.data.split()[2])) - self.previous_pos))
+                round(time.time() - self.start, 4), round(float(self.data.split()[0])) - self.previous_pos))
         open("logs/relative_pos.txt", "a").write(
-            "%s,%s\n" % (round(time.time() - self.start, 4), round(float(self.data.split()[2]))))
-        self.previous_gyro = round(float(self.data.split()[0]), 3)
-        self.previous_accel = round(float(self.data.split()[1]), 3)
-        self.previous_pos = round(float(self.data.split()[2]), 3)
+            "%s,%s\n" % (round(time.time() - self.start, 4), round(float(self.data.split()[0]))))
+        self.previous_gyro = round(float(self.data.split()[1]), 3)
+        self.previous_accel = round(float(self.data.split()[2]), 3)
+        self.previous_pos = round(float(self.data.split()[0]), 3)
 
     def main_loop(self):
             """The main function to loop"""
@@ -177,15 +177,16 @@ class Main(QApplication):
                 self.motor1 = 0
                 self.motor2 = 0
                 if len(open("logs/relative_pos.txt").readlines()) >= 11:
-                    self.dp = DataProcessor("logs/relative_pos.txt", "logs/pos.txt", "logs/accel.txt", "logs/gyro.txt")
-                    self.dp.load_data(3,False)
-                    self.sequences, self.next_sequences = self.dp.preprocess(10, 1)
-                    self.decision = self.dn.predict(np.expand_dims(self.sequences[-1], axis=0))
-                    self.window_log("Neural Network Decision:\n%s\nBased on:\n%s" % (self.decision, self.sequences[-1]))
+                    #self.dp = DataProcessor("logs/relative_pos.txt", "logs/pos.txt", "logs/accel.txt", "logs/gyro.txt")
+                    #self.dp.load_data(3,False)
+                    #self.sequences, self.next_sequences = self.dp.preprocess(10, 1)
+                    #self.decision = self.dn.predict(np.expand_dims(self.sequences[-1], axis=0))
+                    #self.window_log("Neural Network Decision:\n%s\nBased on:\n%s" % (self.decision, self.sequences[-1]))
+                    pass
                 self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-                while not round((time.time()-self.prev_time),3).is_integer():
-                    pass
+                #while not round((time.time()-self.prev_time),3).is_integer():
+                    #pass
                 self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
                 self.prev_time = time.time()
                 if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):

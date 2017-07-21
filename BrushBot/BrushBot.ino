@@ -6,6 +6,7 @@
 #include <NewPing.h>
 #include "FS.h"
 #include "SparkFunLSM6DS3.h"
+#include <math.h>
 
 //WiFi Variables
 const char* ssid = "THOMAS-LATTITUD 3759";
@@ -26,7 +27,7 @@ long distance;
 NewPing sonar(trigPin, echoPin, maxDistance);
 
 //IMU Variables
-float gyroZ;
+long gyroZ;
 float accelY;
 LSM6DS3 brushBotIMU;
 
@@ -81,7 +82,8 @@ void loop() {
   char reply3[32];
   sprintf(reply, "%d ", distance);
   sprintf(reply2, "%d ",gyroZ);
-  sprintf(reply3, "%d",accelY);
+  dtostrf(accelY, 3, 5, reply3);
+  Serial.println(reply3);
   char rep[255] = "";
   strcat(reply, reply2);
   strcat(reply, reply3);
