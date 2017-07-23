@@ -205,7 +205,7 @@ if __name__ == '__main__':
     open('logs/accel.txt', 'w+').write("")
     open('logs/pos.txt', 'w+').write("")
     open('logs/relative_pos.txt', 'w+').write("")
-    ip, port = "192.168.137.158", 8888
+    ip, port = "192.168.1.226", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main("logs/log.txt")
     m.create_window()

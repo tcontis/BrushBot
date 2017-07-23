@@ -9,14 +9,14 @@
 #include <math.h>
 
 //WiFi Variables
-const char* ssid = "THOMAS-LATTITUD 3759";
-const char* password = "16H45(n7";
+const char* ssid = "GRITS_Lab";
+const char* password = "grits434!";
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
 WiFiUDP Udp;
 
 //Motor Variables
-const int leftMotorPin = 4;
+const int leftMotorPin = 2;
 const int rightMotorPin = 13;
 
 //Ultrasonic Variables
@@ -61,20 +61,13 @@ void writePacket(char s[]){
 
 void loop() {
   //Read Ultrasonic data in centimeters
-  sonar.ping_cm();
+  distance = sonar.ping_cm();
 
   //Read gyro data
   gyroZ = brushBotIMU.readFloatGyroZ();
 
   //Read accelerometer data
   accelY = brushBotIMU.readFloatAccelY();
-
-  Serial.print("Dist: ");
-  Serial.print(distance);
-  Serial.print(" Gyro: ");
-  Serial.print(gyroZ);
-  Serial.print(" Accel: ");
-  Serial.println(accelY);
   
   // put your main code here, to run repeatedly:
   char reply[32];
@@ -83,7 +76,6 @@ void loop() {
   sprintf(reply, "%d ", distance);
   sprintf(reply2, "%d ",gyroZ);
   dtostrf(accelY, 3, 5, reply3);
-  Serial.println(reply3);
   char rep[255] = "";
   strcat(reply, reply2);
   strcat(reply, reply3);
@@ -98,17 +90,23 @@ void loop() {
     }
     Serial.printf("UDP packet contents: %s\n", receivedPacket);
     writePacket(reply);
-    char leftMotor[20];
-    char rightMotor[20];
+    String leftMotor;
+    String rightMotor;
     for(int i = 0;i < strlen(receivedPacket);i++){
       if (receivedPacket[i] == ' '){
-        strncpy(leftMotor, receivedPacket,i);
-        strncpy(rightMotor, receivedPacket+i,strlen(receivedPacket));
+        char left[i];
+        char right[strlen(receivedPacket)-i];
+        strncpy(left, receivedPacket,i);
+        strncpy(right, receivedPacket+i,strlen(receivedPacket));
+        leftMotor = String(left);
+        rightMotor = String(right);
       }
     }
-    int l = atoi(leftMotor);
-    int r = atoi(rightMotor);
-    //analogWrite(leftMotorPin,l);
-    //analogWrite(rightMotorPin,r);
+    
+    int l = leftMotor.toInt();
+    int r = rightMotor.toInt();
+    analogWrite(leftMotorPin,l);
+    analogWrite(rightMotorPin,r);
+    Serial.println(analogRead(leftMotorPin));
   }
 }
