@@ -9,19 +9,19 @@
 #include <math.h>
 
 //WiFi Variables
-const char* ssid = "GRITS_Lab";
-const char* password = "grits434!";
+const char* ssid = "TCONTIS";
+const char* password = "qazxswedc";
 unsigned int localUdpPort = 8888;
 char receivedPacket[255];
 WiFiUDP Udp;
 
 //Motor Variables
-const int leftMotorPin = 2;
-const int rightMotorPin = 13;
+const int leftMotorPin = 15; //D8
+const int rightMotorPin = 13; //D7
 
 //Ultrasonic Variables
-const int trigPin = 12;
-const int echoPin = 14;
+const int trigPin = 12; //D6
+const int echoPin = 14; //D5
 const int maxDistance = 200;
 long distance;
 NewPing sonar(trigPin, echoPin, maxDistance);
@@ -90,23 +90,21 @@ void loop() {
     }
     Serial.printf("UDP packet contents: %s\n", receivedPacket);
     writePacket(reply);
-    String leftMotor;
-    String rightMotor;
+    char leftMotor[20];
+    char rightMotor[20];
     for(int i = 0;i < strlen(receivedPacket);i++){
       if (receivedPacket[i] == ' '){
-        char left[i];
-        char right[strlen(receivedPacket)-i];
-        strncpy(left, receivedPacket,i);
-        strncpy(right, receivedPacket+i,strlen(receivedPacket));
-        leftMotor = String(left);
-        rightMotor = String(right);
+        strncpy(leftMotor, receivedPacket,i);
+        strncpy(rightMotor, receivedPacket+i,strlen(receivedPacket));
       }
     }
     
-    int l = leftMotor.toInt();
-    int r = rightMotor.toInt();
+    int l = atoi(leftMotor);
+    int r = atoi(rightMotor);
+    Serial.print(l);
+    Serial.print(" ");
+    Serial.println(r);
     analogWrite(leftMotorPin,l);
     analogWrite(rightMotorPin,r);
-    Serial.println(analogRead(leftMotorPin));
   }
 }

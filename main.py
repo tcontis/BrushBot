@@ -79,8 +79,8 @@ class Main(QApplication):
             x, y = line.split(',')
             xs.append(float(x))
             ys.append(float(y))
-        xs = xs[-300:]
-        ys = ys[-300:]
+        xs = xs[-100:]
+        ys = ys[-100:]
         self.form.gyro_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
         self.processEvents()
 
@@ -91,8 +91,8 @@ class Main(QApplication):
             x, y = line.split(',')
             xs.append(float(x))
             ys.append(float(y))
-        xs = xs[-300:]
-        ys = ys[-300:]
+        xs = xs[-100:]
+        ys = ys[-100:]
         self.form.accel_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
         self.processEvents()
 
@@ -103,8 +103,8 @@ class Main(QApplication):
             x, y = line.split(',')
             xs.append(float(x))
             ys.append(float(y))
-        xs = xs[-300:]
-        ys = ys[-300:]
+        xs = xs[-100:]
+        ys = ys[-100:]
         self.form.pos_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
         self.processEvents()
 
@@ -152,8 +152,8 @@ class Main(QApplication):
                         self.log("Error, could not find GamePad? Is it connected?")
                         self.form.mode_selection_combo_box.setCurrentIndex(1)
                         self.processEvents()
-                self.motor1 = -((self.game_pad_handler.leftJoyStickY * 2) - 256)
-                self.motor2 = -((self.game_pad_handler.rightJoyStickY * 2) - 256)
+                self.motor1 = -4 * ((self.game_pad_handler.leftJoyStickY * 2) - 256) - 1
+                self.motor2 = -4 * ((self.game_pad_handler.rightJoyStickY * 2) - 256) - 1
                 if self.motor1 < 0:
                     self.motor1 = 0
                 if self.motor2 < 0:
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     open('logs/accel.txt', 'w+').write("")
     open('logs/pos.txt', 'w+').write("")
     open('logs/relative_pos.txt', 'w+').write("")
-    ip, port = "192.168.1.226", 8888
+    ip, port = "192.168.137.16", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main("logs/log.txt")
     m.create_window()

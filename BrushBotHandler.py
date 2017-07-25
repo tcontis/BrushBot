@@ -41,7 +41,7 @@ class BrushBotHandler(object):
         """Send message to BrushBot, detect connection issues"""
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.sock.settimeout(1.0)
+            self.sock.settimeout(2.0)
             self.sock.sendto(bytes(string, encoding='utf-8'), (self.device_address, self.port))
             data, address = self.sock.recvfrom(128)
             if receive:
