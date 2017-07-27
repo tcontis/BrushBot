@@ -1,8 +1,8 @@
 """Decision Network for BrushBot"""
 
-from keras.models import load_model, Sequential
-from keras.layers import Dropout, LSTM, Activation, Dense
-from keras.optimizers import RMSprop
+#from keras.models import load_model, Sequential
+#from keras.layers import Dropout, LSTM, Activation, Dense
+#from keras.optimizers import RMSprop
 
 
 class DataProcessor(object):
@@ -28,8 +28,8 @@ class DataProcessor(object):
         changes in position, changes in acceleration, and changes in rotation."""
         self.accuracy = accuracy
         for line in open(self.joy_file, "r"):
-            time, value = line.split(',')
-            self.joys.append(round(float(value), self.accuracy))
+            time, left, right = line.replace("\n", "").split(',')
+            self.joys.append([left, right])
         for line in open(self.gyro_file, "r"):
             time, value = line.split(',')
             self.times.append(round(float(time), self.accuracy))
@@ -93,3 +93,8 @@ class DecisionNetwork(object):
 
     def predict(self, to_predict):
         return self.model.predict(to_predict)
+
+if __name__ == '__main__':
+    dp = DataProcessor("logs/gyro.txt", "logs/accelX.txt", "logs/accelY.txt", "logs/joy.txt")
+    times, delta_gyro, delta_accelX, delta_accelY, joys = dp.load_data(3, True)
+    print(joys)

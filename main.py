@@ -85,7 +85,7 @@ class Main(QApplication):
         self.form.gyro_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
         self.processEvents()
 
-    def accel_plot(self, textfile):
+    def accelX_plot(self, textfile):
         """Plots data on accelerometer plot"""
         xs, ys = [], []
         for line in open(textfile, 'r').readlines():
@@ -94,10 +94,10 @@ class Main(QApplication):
             ys.append(float(y))
         xs = xs[-100:]
         ys = ys[-100:]
-        self.form.accel_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
+        self.form.accelX_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
         self.processEvents()
 
-    def pos_plot(self, textfile):
+    def accelY_plot(self, textfile):
         """Plots data on position plot"""
         xs, ys = [], []
         for line in open(textfile, 'r').readlines():
@@ -106,13 +106,13 @@ class Main(QApplication):
             ys.append(float(y))
         xs = xs[-100:]
         ys = ys[-100:]
-        self.form.pos_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
+        self.form.accelY_plot.plotItem.plot(xs, ys, symbol='o', pen='r', clear=True)
         self.processEvents()
 
     def plot_data(self):
         self.gyro_plot('logs/gyro.txt')
-        self.accel_plot('logs/accelX.txt')
-        self.pos_plot('logs/accelY.txt')
+        self.accelX_plot('logs/accelX.txt')
+        self.accelY_plot('logs/accelY.txt')
 
     def process_data(self):
         """Processes incoming data"""
@@ -221,10 +221,10 @@ if __name__ == '__main__':
     open('logs/gyro.txt', 'w+').write("")
     open('logs/accelX.txt', 'w+').write("")
     open('logs/accelY.txt', 'w+').write("")
-    open('logs/pos.txt', 'w+').write("")
-    open('logs/relative_pos.txt', 'w+').write("")
+    #open('logs/pos.txt', 'w+').write("")
+    #open('logs/relative_pos.txt', 'w+').write("")
     open('logs/joy.txt', 'w+').write("")
-    ip, port = "192.168.137.75", 8888
+    ip, port = "192.168.137.199", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main("logs/log.txt")
     m.create_window()

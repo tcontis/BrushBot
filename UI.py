@@ -35,10 +35,10 @@ class UiMainWindow(QMainWindow):
         self.log_box.setAlignment(QtCore.Qt.AlignCenter)
         self.gyro_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Gyro Plot")
         self.gyro_box.setAlignment(QtCore.Qt.AlignCenter)
-        self.accel_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Accelerometer Plot")
-        self.accel_box.setAlignment(QtCore.Qt.AlignCenter)
-        self.pos_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Position Plot")
-        self.pos_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.accelX_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Accelerometer X Plot")
+        self.accelX_box.setAlignment(QtCore.Qt.AlignCenter)
+        self.accelY_box = QtWidgets.QGroupBox(self.central_widget, title="Delta Accelerometer Y Plot")
+        self.accelY_box.setAlignment(QtCore.Qt.AlignCenter)
 
         self.mode_selection_group_box = QtWidgets.QGroupBox()
         self.mode_label = QtWidgets.QLabel("Mode Selection:")
@@ -54,9 +54,9 @@ class UiMainWindow(QMainWindow):
 
         self.gyro_plot = pg.PlotWidget()
 
-        self.accel_plot = pg.PlotWidget()
+        self.accelX_plot = pg.PlotWidget()
 
-        self.pos_plot = pg.PlotWidget()
+        self.accelY_plot = pg.PlotWidget()
 
         self.mode_vertical_layout = QtWidgets.QVBoxLayout(self.mode_box)
         self.mode_vertical_layout.addWidget(self.mode_selection_group_box)
@@ -74,18 +74,18 @@ class UiMainWindow(QMainWindow):
         self.gyro_vertical_layout = QtWidgets.QVBoxLayout(self.gyro_box)
         self.gyro_vertical_layout.addWidget(self.gyro_plot)
 
-        self.accel_vertical_layout = QtWidgets.QVBoxLayout(self.accel_box)
-        self.accel_vertical_layout.addWidget(self.accel_plot)
+        self.accelX_vertical_layout = QtWidgets.QVBoxLayout(self.accelX_box)
+        self.accelX_vertical_layout.addWidget(self.accelX_plot)
 
-        self.pos_vertical_layout = QtWidgets.QVBoxLayout(self.pos_box)
-        self.pos_vertical_layout.addWidget(self.pos_plot)
+        self.accelY_vertical_layout = QtWidgets.QVBoxLayout(self.accelY_box)
+        self.accelY_vertical_layout.addWidget(self.accelY_plot)
 
         self.master_grid_layout.addWidget(self.mode_box, 0, 0, 1, 1)
         self.master_grid_layout.addWidget(self.comm_box, 0, 1, 1, 1)
         #self.master_grid_layout.addWidget(self.log_box, 0, 2, 1, 1)
         self.master_grid_layout.addWidget(self.gyro_box, 1, 0, 1, 1)
-        self.master_grid_layout.addWidget(self.accel_box, 1, 1, 1, 1)
-        self.master_grid_layout.addWidget(self.pos_box, 1, 2, 1, 1)
+        self.master_grid_layout.addWidget(self.accelX_box, 1, 1, 1, 1)
+        self.master_grid_layout.addWidget(self.accelY_box, 1, 2, 1, 1)
         self.setCentralWidget(self.central_widget)
         self.central_widget.setLayout(self.master_grid_layout)
 
