@@ -16,8 +16,12 @@ char receivedPacket[255];
 WiFiUDP Udp;
 
 //Motor Variables
-const int leftMotorPin = 15; //D8
-const int rightMotorPin = 13; //D7
+const int leftEnable = 5; //D1
+const int leftInputA = 4; //D2
+const int leftInputB = 0; //D3
+const int rightEnable = 15; //D8
+const int rightInputA = 13; //D7
+const int rightInputB = 2; //D4
 
 //Ultrasonic Variables
 const int trigPin = 12; //D6
@@ -29,13 +33,17 @@ NewPing sonar(trigPin, echoPin, maxDistance);
 //IMU Variables
 long gyroZ;
 float accelY;
-LSM6DS3 brushBotIMU;
+//LSM6DS3 brushBotIMU;
 
 void setup() {
   //Initialize Pins and IMU.
-  pinMode(leftMotorPin, OUTPUT);
-  pinMode(rightMotorPin, OUTPUT);
-  brushBotIMU.begin();
+  pinMode(leftEnable, OUTPUT);
+  pinMode(leftInputA, OUTPUT);
+  pinMode(leftInputB, OUTPUT);
+  pinMode(rightEnable, OUTPUT);
+  pinMode(rightInputA, OUTPUT);
+  pinMode(rightInputB, OUTPUT);
+  //brushBotIMU.begin();
   
   //Begin serial communication and attempt to connect to wifi
   Serial.begin(115200);
@@ -52,6 +60,23 @@ void setup() {
   Serial.printf("Now listening at IP %s, UDP port %d\n", WiFi.localIP().toString().c_str(), localUdpPort);
 }
 
+//Set H-bridge pins based on speed and direction
+void setMotor(int speedNumber, int enablePin, int inputAPin, int inputBPin){
+  analogWrite(enablePin, abs(speedNumber));
+  if (speedNumber < 0){
+    digitalWrite(inputAPin, LOW);
+    digitalWrite(inputBPin, HIGH);
+  }
+  else if (speedNumber > 0){
+    digitalWrite(inputAPin, HIGH);
+    digitalWrite(inputBPin, LOW);
+  }
+  else{
+    digitalWrite(inputAPin, LOW);
+    digitalWrite(inputBPin, LOW);
+  }
+}
+
 //Void to write packet to address.
 void writePacket(char s[]){
   Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
@@ -64,10 +89,10 @@ void loop() {
   distance = sonar.ping_cm();
 
   //Read gyro data
-  gyroZ = brushBotIMU.readFloatGyroZ();
+  gyroZ = 0;//brushBotIMU.readFloatGyroZ();
 
   //Read accelerometer data
-  accelY = brushBotIMU.readFloatAccelY();
+  accelY = 0;//brushBotIMU.readFloatAccelY();
   
   // put your main code here, to run repeatedly:
   char reply[32];
@@ -104,7 +129,7 @@ void loop() {
     Serial.print(l);
     Serial.print(" ");
     Serial.println(r);
-    analogWrite(leftMotorPin,l);
-    analogWrite(rightMotorPin,r);
+    setMotor(l, leftEnable, leftInputA, leftInputB);
+    setMotor(r, rightEnable, rightInputA, rightInputB);
   }
 }

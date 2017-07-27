@@ -126,6 +126,9 @@ class Main(QApplication):
                 round(time.time() - self.start, 4), round(float(self.data.split()[0])) - self.previous_pos))
         open("logs/relative_pos.txt", "a").write(
             "%s,%s\n" % (round(time.time() - self.start, 4), round(float(self.data.split()[0]))))
+        open("logs/joy.txt", "a").write(
+            "%s,%s,%s\n" % (
+                round(time.time() - self.start, 4), self.motor1, self.motor2))
         self.previous_gyro = round(float(self.data.split()[1]), 3)
         self.previous_accel = round(float(self.data.split()[2]), 3)
         self.previous_pos = round(float(self.data.split()[0]), 3)
@@ -152,12 +155,8 @@ class Main(QApplication):
                         self.log("Error, could not find GamePad? Is it connected?")
                         self.form.mode_selection_combo_box.setCurrentIndex(1)
                         self.processEvents()
-                self.motor1 = -4 * ((self.game_pad_handler.leftJoyStickY * 2) - 256) - 1
-                self.motor2 = -4 * ((self.game_pad_handler.rightJoyStickY * 2) - 256) - 1
-                if self.motor1 < 0:
-                    self.motor1 = 0
-                if self.motor2 < 0:
-                    self.motor2 = 0
+                self.motor1 = int(round(((self.game_pad_handler.leftJoyStickY * 1023) - 130432.5)/-127.5, 0))
+                self.motor2 = int(round(((self.game_pad_handler.rightJoyStickY * 1023) - 130432.5)/-127.5, 0))
                 self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
@@ -201,11 +200,13 @@ class Main(QApplication):
             time.sleep(0.001)
 
 if __name__ == '__main__':
+    import socket
     open('logs/gyro.txt', 'w+').write("")
     open('logs/accel.txt', 'w+').write("")
     open('logs/pos.txt', 'w+').write("")
     open('logs/relative_pos.txt', 'w+').write("")
-    ip, port = "192.168.137.16", 8888
+    open('logs/joy.txt', 'w+').write("")
+    ip, port = "192.168.137.25", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main("logs/log.txt")
     m.create_window()
