@@ -22,8 +22,9 @@ class Main(QApplication):
         self.form = None
         self.start = None
         self.previous_gyro = 0
-        self.previous_accel = 0
-        self.previous_pos = 0
+        self.previous_accelX = 0
+        self.previous_accelY = 0
+        #self.previous_pos = 0
         self.ip = None
         self.port = None
         self.vendor_id = None
@@ -110,28 +111,44 @@ class Main(QApplication):
 
     def plot_data(self):
         self.gyro_plot('logs/gyro.txt')
-        self.accel_plot('logs/accel.txt')
-        self.pos_plot('logs/pos.txt')
+        self.accel_plot('logs/accelX.txt')
+        self.pos_plot('logs/accelY.txt')
 
     def process_data(self):
         """Processes incoming data"""
         open("logs/gyro.txt", "a").write(
             "%s,%s\n" % (
                 round(time.time() - self.start, 4), round(float(self.data.split()[1])) - self.previous_gyro))
-        open("logs/accel.txt", "a").write(
+        open("logs/accelX.txt", "a").write(
             "%s,%s\n" % (
-                round(time.time() - self.start, 4), round(float(self.data.split()[2])) - self.previous_accel))
-        open("logs/pos.txt", "a").write(
+                round(time.time() - self.start, 4), round(float(self.data.split()[0])) - self.previous_accelX))
+        open("logs/accelY.txt", "a").write(
+            "%s,%s\n" % (
+                round(time.time() - self.start, 4), round(float(self.data.split()[2])) - self.previous_accelY))
+        open("logs/data_gyro.txt", "a").write(
+            "%s,%s\n" % (
+                round(time.time() - self.start, 4), round(float(self.data.split()[1])) - self.previous_gyro))
+        open("logs/data_accelX.txt", "a").write(
+            "%s,%s\n" % (
+                round(time.time() - self.start, 4), round(float(self.data.split()[0])) - self.previous_accelX))
+        open("logs/data_accelY.txt", "a").write(
+            "%s,%s\n" % (
+                round(time.time() - self.start, 4), round(float(self.data.split()[2])) - self.previous_accelY))
+        """open("logs/pos.txt", "a").write(
             "%s,%s\n" % (
                 round(time.time() - self.start, 4), round(float(self.data.split()[0])) - self.previous_pos))
         open("logs/relative_pos.txt", "a").write(
-            "%s,%s\n" % (round(time.time() - self.start, 4), round(float(self.data.split()[0]))))
+            "%s,%s\n" % (round(time.time() - self.start, 4), round(float(self.data.split()[0]))))"""
         open("logs/joy.txt", "a").write(
             "%s,%s,%s\n" % (
                 round(time.time() - self.start, 4), self.motor1, self.motor2))
+        open("logs/data_joy.txt", "a").write(
+            "%s,%s,%s\n" % (
+                round(time.time() - self.start, 4), self.motor1, self.motor2))
         self.previous_gyro = round(float(self.data.split()[1]), 3)
-        self.previous_accel = round(float(self.data.split()[2]), 3)
-        self.previous_pos = round(float(self.data.split()[0]), 3)
+        self.previous_accelX = round(float(self.data.split()[0]), 3)
+        self.previous_accelY = round(float(self.data.split()[2]), 3)
+        #self.previous_pos = round(float(self.data.split()[0]), 3)
 
     def main_loop(self):
             """The main function to loop"""
@@ -202,11 +219,12 @@ class Main(QApplication):
 if __name__ == '__main__':
     import socket
     open('logs/gyro.txt', 'w+').write("")
-    open('logs/accel.txt', 'w+').write("")
+    open('logs/accelX.txt', 'w+').write("")
+    open('logs/accelY.txt', 'w+').write("")
     open('logs/pos.txt', 'w+').write("")
     open('logs/relative_pos.txt', 'w+').write("")
     open('logs/joy.txt', 'w+').write("")
-    ip, port = "192.168.137.25", 8888
+    ip, port = "192.168.137.75", 8888
     vendor_id, product_id = 0x046d, 0xc216
     m = Main("logs/log.txt")
     m.create_window()

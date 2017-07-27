@@ -16,24 +16,25 @@ char receivedPacket[255];
 WiFiUDP Udp;
 
 //Motor Variables
-const int leftEnable = 5; //D1
-const int leftInputA = 4; //D2
+const int leftEnable = 14; //D5
+const int leftInputA = 12; //D6
 const int leftInputB = 0; //D3
 const int rightEnable = 15; //D8
 const int rightInputA = 13; //D7
 const int rightInputB = 2; //D4
 
 //Ultrasonic Variables
-const int trigPin = 12; //D6
-const int echoPin = 14; //D5
+/*const int trigPin = 14; //D5
+const int echoPin = 12; //D6
 const int maxDistance = 200;
+NewPing sonar(trigPin, echoPin, maxDistance);*/
 long distance;
-NewPing sonar(trigPin, echoPin, maxDistance);
 
 //IMU Variables
 long gyroZ;
 float accelY;
-//LSM6DS3 brushBotIMU;
+float accelX;
+LSM6DS3 brushBotIMU;
 
 void setup() {
   //Initialize Pins and IMU.
@@ -43,7 +44,7 @@ void setup() {
   pinMode(rightEnable, OUTPUT);
   pinMode(rightInputA, OUTPUT);
   pinMode(rightInputB, OUTPUT);
-  //brushBotIMU.begin();
+  brushBotIMU.begin();
   
   //Begin serial communication and attempt to connect to wifi
   Serial.begin(115200);
@@ -86,20 +87,22 @@ void writePacket(char s[]){
 
 void loop() {
   //Read Ultrasonic data in centimeters
-  distance = sonar.ping_cm();
+  distance = 0;//sonar.ping_cm();
 
   //Read gyro data
-  gyroZ = 0;//brushBotIMU.readFloatGyroZ();
+  gyroZ = brushBotIMU.readFloatGyroZ();
 
   //Read accelerometer data
-  accelY = 0;//brushBotIMU.readFloatAccelY();
+  accelY = brushBotIMU.readFloatAccelY();
+
+  accelX = brushBotIMU.readFloatAccelX();
   
   // put your main code here, to run repeatedly:
   char reply[32];
   char reply2[32];
   char reply3[32];
-  sprintf(reply, "%d ", distance);
-  sprintf(reply2, "%d ",gyroZ);
+  sprintf(reply2, " %d ",gyroZ);
+  dtostrf(accelX, 3, 5, reply);
   dtostrf(accelY, 3, 5, reply3);
   char rep[255] = "";
   strcat(reply, reply2);

@@ -8,49 +8,46 @@ from keras.optimizers import RMSprop
 class DataProcessor(object):
     """A data processing class that allows for the loading of data and preprocessing for neural network"""
 
-    def __init__(self, relative_position_file, position_file, accel_file, gyro_file):
-        self.relative_position_file = relative_position_file
-        self.position_file = position_file
+    def __init__(self, gyro_file, accelX_file, accelY_file, joy_file):
         self.gyro_file = gyro_file
-        self.accel_file = accel_file
+        self.accelX_file = accelX_file
+        self.accelY_file = accelY_file
+        self.joy_file = joy_file
         self.accuracy = 3
         self.relative_pos = []
-        self.delta_pos = []
+        self.delta_accelX = []
         self.delta_gyro = []
-        self.delta_accel = []
+        self.delta_accelY = []
         self.times = []
         self.data = []
         self.sequences = []
-        self.next_sequences = []
+        self.joys = []
 
     def load_data(self, accuracy, return_values=True):
         """Load data from textfile rounding it to desired decimal place. Returns a list of times, relative positions,
         changes in position, changes in acceleration, and changes in rotation."""
         self.accuracy = accuracy
-        for line in open(self.relative_position_file, "r"):
+        for line in open(self.joy_file, "r"):
             time, value = line.split(',')
-            self.relative_pos.append(round(float(value), self.accuracy))
-        for line in open(self.position_file, "r"):
-            time, value = line.split(',')
-            self.times.append(round(float(time), self.accuracy))
-            self.delta_pos.append(round(float(value), self.accuracy))
-        for line in open(self.accel_file, "r"):
-            time, value = line.split(',')
-            self.delta_accel.append(round(float(value), self.accuracy))
+            self.joys.append(round(float(value), self.accuracy))
         for line in open(self.gyro_file, "r"):
             time, value = line.split(',')
+            self.times.append(round(float(time), self.accuracy))
             self.delta_gyro.append(round(float(value), self.accuracy))
+        for line in open(self.accelX_file, "r"):
+            time, value = line.split(',')
+            self.delta_accelX.append(round(float(value), self.accuracy))
+        for line in open(self.accelY_file, "r"):
+            time, value = line.split(',')
+            self.delta_accelY.append(round(float(value), self.accuracy))
         if return_values:
-            return self.times, self.relative_pos, self.delta_pos, self.delta_accel, self.delta_gyro
+            return self.times, self.delta_gyro, self.delta_accelX, self.delta_accelY, self.joys
 
-    def preprocess(self, sequence_length, step):
+    def preprocess(self):
         """Preprocess the data into sequences. Returns chunks of sequences and a list of next sequences"""
-        for r, p, a, g in zip(self.relative_pos, self.delta_pos, self.delta_accel, self.delta_gyro):
-            self.data.append([r, p, a, g])
-        for i in range(0, len(self.data) - sequence_length, step):
-            self.sequences.append(self.data[i:i + sequence_length])
-            self.next_sequences.append(self.data[i + sequence_length])
-        return self.sequences, self.next_sequences
+        for g, x, y in zip(self.delta_gyro, self.delta_accelX, self.delta_accelY):
+            self.data.append([g, x, y])
+        return self.data, self.joys, self.times
 
 
 class DecisionNetwork(object):
