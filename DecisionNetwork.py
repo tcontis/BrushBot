@@ -434,7 +434,7 @@ class DecisionNetwork(object):
             print(self.model.input_shape)
             self.model.summary()
             self.optimizer = RMSprop(lr=0.01)
-            self.model.compile(loss='mse', optimizer="adam")
+            self.model.compile(loss='mse', optimizer=self.optimizer)
 
     def load_model(self):
         self.model = load_model(self.savefile)
@@ -529,10 +529,19 @@ if __name__ == '__main__':
             dn = DecisionNetwork("models/dynamics_model.h5")
             dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(), m.form.neurons, False)
             dn.train_model()
-            fig = plt.figure()
+            """fig = plt.figure()
             ax = fig.add_subplot(111)
-            ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')
-            plt.show()
+            ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')"""
+            if (len(inputs[0]) + len(outputs[0])) == 2:
+                y = []
+                z = []
+                fig2 = plt.figure()
+                ax2 = fig2.add_subplot(111)
+                for i in range(-1023, 1023):
+                    y.append(i)
+                    z.append(dn.model.predict(np.array([i]))[0][0])
+                ax2.plot(y, z, c='b', marker='o')
+                plt.show()
             m.form.network_processed = False
         m.processEvents()
     sys.exit(m.exec_())
