@@ -22,18 +22,21 @@ class VisualizerMainWindow(QMainWindow):
         """Initialize Window"""
         super(VisualizerMainWindow, self).__init__()
         self.setupUi()
+
+    def setupUi(self):
+        self.to_show = ["", "_2"]
+        self.number_of_values = 0
+        self.number_of_input_values = 1
+        self.number_of_output_values = 1
+        self.number_of_layers_values = 2
         self.value_1 = None
         self.value_2 = None
         self.value_3 = None
         self.value_4 = None
         self.value_5 = None
-        self.number_of_values = 0
-        self.number_of_input_values = 0
-        self.number_of_output_values = 0
-        self.number_of_layers_values = 0
+        self.neurons = []
         self.is_processed = False
-
-    def setupUi(self):
+        self.network_processed = False
 
         # Size window to default dimensions
         self.resize(1800, 900)
@@ -92,6 +95,7 @@ class VisualizerMainWindow(QMainWindow):
         #Neural Network Stuff
 
         self.neural_network_train_button = QtWidgets.QPushButton("Train Network!")
+        self.neural_network_train_button.pressed.connect(self.process_layers)
 
         self.neural_network_input_selection_box = QtWidgets.QGroupBox(title="Input Selection")
         self.neural_network_input_selection_box.setAlignment(QtCore.Qt.AlignCenter)
@@ -145,7 +149,7 @@ class VisualizerMainWindow(QMainWindow):
             exec(
                 "self.input_value_selection_box_horizontal_layout%s.addWidget(self.input_value_selection_combo_box%s)" % (
                 number, number))
-            if number != self.letters[0] and number != self.letters[1]:
+            if number != self.letters[0]:
                 exec("self.input_value_selection_box_group_box%s.hide()" % number)
 
         # Outputs
@@ -195,6 +199,7 @@ class VisualizerMainWindow(QMainWindow):
 
         self.neural_network_epochs_label = QtWidgets.QLabel("Epochs:")
         self.neural_network_epochs_spin_box = QtWidgets.QSpinBox()
+        self.neural_network_epochs_spin_box.setMinimum(1)
         self.neural_network_epochs_spin_box.setMaximum(100000)
         self.neural_network_epochs_selection_box = QtWidgets.QGroupBox()
         self.neural_network_epochs_horizontal_layout = QtWidgets.QHBoxLayout(
@@ -218,12 +223,13 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_layers_number_horizontal_layout.addWidget(self.neural_network_layers_selection_combo_box)
         self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_layers_number_selection_box)
 
-        self.numbers = [i for i in range(5)]
+        self.numbers = [i for i in range(1,6)]
         for num, n in zip(self.letters, self.numbers):
             exec("self.layers_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % num)
             exec("self.layers_value_selection_label%s = QtWidgets.QLabel('Neurons in Layer %s')" % (
                 num, n))
             exec("self.layers_value_selection_spin_box%s = QtWidgets.QSpinBox()" % num)
+            exec("self.layers_value_selection_spin_box.setMinimum(1)")
             exec("self.layers_value_selection_spin_box.setMaximum(100000)")
 
             exec(
@@ -238,8 +244,10 @@ class VisualizerMainWindow(QMainWindow):
             exec(
                 "self.neural_network_parameter_vertical_layout.addWidget(self.layers_value_selection_box_group_box%s)" % num)
 
-            if num != self.letters[0]:
+            if num != self.letters[0] and num != self.letters[1]:
                 exec("self.layers_value_selection_box_group_box%s.hide()" % num)
+        exec("self.layers_value_selection_spin_box%s.setValue(self.number_of_output_values)" % self.to_show[-1])
+        exec("self.layers_value_selection_spin_box%s.setReadOnly(True)" % self.to_show[-1])
 
         self.master_grid_layout.addWidget(self.value_selection_box, 0, 0, 1, 1)
         self.master_grid_layout.addWidget(self.neural_network_box, 0, 1, 1, 1)
@@ -284,6 +292,21 @@ class VisualizerMainWindow(QMainWindow):
         self.value_5 = self.value_selection_combo_box_5.currentIndex()
         self.is_processed = True
 
+    def process_layers(self):
+        self.neurons = []
+        for i in self.letters[0:self.number_of_layers_values]:
+            string = "self.layers_value_selection_spin_box%s.value()" % i
+            self.neurons.append(eval(string))
+        self.inputs = []
+        for i in self.letters[0:self.number_of_input_values]:
+            string = "self.input_value_selection_combo_box%s.currentIndex()" % i
+            self.inputs.append(eval(string))
+        self.outputs = []
+        for i in self.letters[0:self.number_of_output_values]:
+            string = "self.output_value_selection_combo_box%s.currentIndex()" % i
+            self.outputs.append(eval(string))
+        self.network_processed = True
+
     def show_values(self):
         self.number_of_values = int(self.quantity_selection_combo_box.currentText())
         for letter in self.letters[:self.number_of_values]:
@@ -304,12 +327,23 @@ class VisualizerMainWindow(QMainWindow):
             exec("self.output_value_selection_box_group_box%s.show()" % letter)
         for letter in self.letters[self.number_of_output_values:]:
             exec("self.output_value_selection_box_group_box%s.hide()" % letter)
+        exec("self.layers_value_selection_spin_box%s.setValue(self.number_of_output_values)" % self.to_show[-1])
 
     def show_parameters_values(self):
         self.number_of_layers_values = int(self.neural_network_layers_selection_combo_box.currentText())
-        for letter in self.letters[:self.number_of_layers_values]:
+        self.to_show = self.letters[:self.number_of_layers_values]
+        for letter in self.to_show:
             exec("self.layers_value_selection_box_group_box%s.show()" % letter)
+            if letter == self.to_show[-1]:
+                exec("self.layers_value_selection_spin_box%s.setValue(self.number_of_output_values)" % letter)
+                exec("self.layers_value_selection_spin_box%s.setReadOnly(True)" % letter)
+            elif letter != self.to_show[0]:
+                exec("self.layers_value_selection_spin_box%s.setValue(1)" % letter)
+                exec("self.layers_value_selection_spin_box%s.setReadOnly(False)" % letter)
+            else:
+                exec("self.layers_value_selection_spin_box%s.setReadOnly(False)" % letter)
         for letter in self.letters[self.number_of_layers_values:]:
+            exec("self.layers_value_selection_spin_box%s.setValue(0)" % letter)
             exec("self.layers_value_selection_box_group_box%s.hide()" % letter)
 
 
@@ -380,7 +414,7 @@ class DecisionNetwork(object):
         self.model = None
         self.optimizer = None
 
-    def create_model(self, inputs, outputs, epochs, load=False):
+    def create_model(self, inputs, outputs, epochs, neurons, load=False):
         if load:
             self.load_model()
         else:
@@ -388,9 +422,13 @@ class DecisionNetwork(object):
             self.outputs = outputs
             self.epochs = epochs
             self.model = Sequential()
-            self.model.add(Dense(10, input_dim=2, activation='relu'))
-            self.model.add(Dense(5, activation='relu'))
-            self.model.add(Dense(1))
+            for i in neurons:
+                if i == neurons[0]:
+                    exec("self.model.add(Dense(%s, input_dim=len(inputs[0]), activation='relu'))" % i)
+                elif i == neurons[-1]:
+                    exec("self.model.add(Dense(%s))" % i)
+                else:
+                    exec("self.model.add(Dense(%s, activation='relu'))" % i)
             self.loss = []
             self.epoch_list = []
             print(self.model.input_shape)
@@ -444,18 +482,9 @@ if __name__ == '__main__':
     dp.load_data(3, False)
     joys, left_joys, right_joys, data, delta_gyro, delta_accelX, delta_accelY, times = dp.preprocess()
     s = set(left_joys + right_joys)
-    """dn = DecisionNetwork("models/dynamics_model_accelX.h5")
-    dn.create_model(joys, delta_accelX, 100, False)
-    dn.train_model()
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')
-    plt.show()
-    """
+    d = {0: left_joys, 1: right_joys, 2: delta_accelX, 3: delta_accelY, 4: delta_gyro}
     while True:
         if m.form.is_processed:
-
-            d = {0: left_joys, 1: right_joys, 2: delta_accelX, 3: delta_accelY, 4: delta_gyro}
             text_list = [m.form.value_selection_combo_box.itemText(i) for i in range(len(d))]
             if m.form.number_of_values == 3:
                 fig = plt.figure()
@@ -466,8 +495,6 @@ if __name__ == '__main__':
                 ax.set_ylabel(text_list[m.form.value_2])
                 ax.set_zlabel(text_list[m.form.value_3])
                 plt.show()
-
-
             elif m.form.number_of_values == 2:
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
@@ -477,5 +504,35 @@ if __name__ == '__main__':
                 ax.set_ylabel(text_list[m.form.value_2])
                 plt.show()
             m.form.is_processed = False
+
+        if m.form.network_processed:
+            inputs = []
+            outputs = []
+            temp_i = []
+            temp_o = []
+            for i in m.form.inputs:
+                temp_i.append(d.get(i))
+            for num in range(len(temp_i[0])):
+                a = []
+                for temp in temp_i:
+                    a.append(temp[num])
+                inputs.append(a)
+
+            for o in m.form.outputs:
+                temp_o.append(d.get(o))
+            for num in range(len(temp_o[0])):
+                b = []
+                for temp in temp_o:
+                    b.append(temp[num])
+                outputs.append(b)
+
+            dn = DecisionNetwork("models/dynamics_model.h5")
+            dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(), m.form.neurons, False)
+            dn.train_model()
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')
+            plt.show()
+            m.form.network_processed = False
         m.processEvents()
     sys.exit(m.exec_())
