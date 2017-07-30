@@ -1,8 +1,9 @@
 """Decision Network for BrushBot"""
 
-"""from keras.models import load_model, Sequential
+from keras.models import load_model, Sequential
 from keras.layers import Dropout, LSTM, Activation, Dense
-from keras.optimizers import RMSprop"""
+from keras.optimizers import RMSprop
+from keras.callbacks import History
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,6 +28,8 @@ class VisualizerMainWindow(QMainWindow):
         self.value_4 = None
         self.value_5 = None
         self.number_of_values = 0
+        self.number_of_input_values = 0
+        self.number_of_output_values = 0
         self.is_processed = False
 
     def setupUi(self):
@@ -44,6 +47,9 @@ class VisualizerMainWindow(QMainWindow):
         self.value_selection_box = QtWidgets.QGroupBox(self.central_widget, title="Value Selection")
         self.value_selection_box.setAlignment(QtCore.Qt.AlignCenter)
 
+        self.neural_network_box = QtWidgets.QGroupBox(self.central_widget, title="Neural Network Training")
+        self.neural_network_box.setAlignment(QtCore.Qt.AlignCenter)
+
         self.quantity_selection_box_group_box = QtWidgets.QGroupBox()
         self.quantity_selection_label = QtWidgets.QLabel("Number of variables to analyze:")
         self.quantity_selection_combo_box = QtWidgets.QComboBox()
@@ -59,7 +65,6 @@ class VisualizerMainWindow(QMainWindow):
         self.letters = ["", "_2", "_3", "_4", "_5"]
         self.adjs = ["First", "Second", "Third", "Fourth", "Fifth"]
         for number in self.letters:
-            exec("self.value_selection_box_group_box%s = QtWidgets.QGroupBox()" % number)
             exec("self.value_selection_box_group_box%s = QtWidgets.QGroupBox()" % number)
             exec("self.value_selection_label%s = QtWidgets.QLabel('Choose %s variable:')" % (number, self.adjs[self.letters.index(number)]))
             exec("self.value_selection_combo_box%s = QtWidgets.QComboBox()" % number)
@@ -78,6 +83,103 @@ class VisualizerMainWindow(QMainWindow):
         self.value_selection_button = QtWidgets.QPushButton("Visualize!")
         self.value_selection_button.pressed.connect(self.process_values_selected)
 
+        self.neural_network_train_button = QtWidgets.QPushButton("Train Network!")
+
+        self.neural_network_input_selection_box = QtWidgets.QGroupBox(title="Input Selection")
+        self.neural_network_input_selection_box.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.neural_network_output_selection_box = QtWidgets.QGroupBox(title="Output Selection")
+        self.neural_network_output_selection_box.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.neural_network_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_box)
+        self.neural_network_vertical_layout.addWidget(self.neural_network_input_selection_box)
+        self.neural_network_vertical_layout.addWidget(self.neural_network_output_selection_box)
+
+        #Inputs
+        self.neural_network_input_label = QtWidgets.QLabel("Number of Inputs")
+        self.neural_network_input_selection_combo_box = QtWidgets.QComboBox()
+        self.neural_network_input_selection_combo_box.addItem("1")
+        self.neural_network_input_selection_combo_box.addItem("2")
+        self.neural_network_input_selection_combo_box.addItem("3")
+        self.neural_network_input_selection_combo_box.addItem("4")
+        self.neural_network_input_selection_combo_box.addItem("5")
+        self.neural_network_input_selection_combo_box.currentIndexChanged.connect(self.show_input_values)
+
+        self.neural_network_input_number_selection_box = QtWidgets.QGroupBox()
+        self.neural_network_input_number_horizontal_layout = QtWidgets.QHBoxLayout(self.neural_network_input_number_selection_box)
+        self.neural_network_input_number_horizontal_layout.addWidget(self.neural_network_input_label)
+        self.neural_network_input_number_horizontal_layout.addWidget(self.neural_network_input_selection_combo_box)
+
+        self.neural_network_input_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_input_selection_box)
+        self.neural_network_input_vertical_layout.addWidget(self.neural_network_input_number_selection_box)
+
+        for number in self.letters:
+            exec("self.input_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % number)
+            exec("self.input_value_selection_label%s = QtWidgets.QLabel('Choose %s input variable:')" % (
+            number, self.adjs[self.letters.index(number)]))
+            exec("self.input_value_selection_combo_box%s = QtWidgets.QComboBox()" % number)
+            exec("self.input_value_selection_combo_box%s.addItem('Left Joystick Values')" % number)
+            exec("self.input_value_selection_combo_box%s.addItem('Right Joystick Values')" % number)
+            exec("self.input_value_selection_combo_box%s.addItem('Change in Acceleration on X-axis')" % number)
+            exec("self.input_value_selection_combo_box%s.addItem('Change in Acceleration on Y-axis')" % number)
+            exec("self.input_value_selection_combo_box%s.addItem('Change in Rotation on Z-axis')" % number)
+            exec("self.neural_network_input_vertical_layout.addWidget(self.input_value_selection_box_group_box%s)" % number)
+            exec(
+                "self.input_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.input_value_selection_box_group_box%s)" % (
+                number, number))
+            exec("self.input_value_selection_box_horizontal_layout%s.addWidget(self.input_value_selection_label%s)" % (
+            number, number))
+            exec(
+                "self.input_value_selection_box_horizontal_layout%s.addWidget(self.input_value_selection_combo_box%s)" % (
+                number, number))
+            if number != self.letters[0]:
+                exec("self.input_value_selection_box_group_box%s.hide()" % number)
+
+            # Outputs
+            self.neural_network_output_label = QtWidgets.QLabel("Number of Outputs")
+            self.neural_network_output_selection_combo_box = QtWidgets.QComboBox()
+            self.neural_network_output_selection_combo_box.addItem("1")
+            self.neural_network_output_selection_combo_box.addItem("2")
+            self.neural_network_output_selection_combo_box.addItem("3")
+            self.neural_network_output_selection_combo_box.addItem("4")
+            self.neural_network_output_selection_combo_box.addItem("5")
+            self.neural_network_output_selection_combo_box.currentIndexChanged.connect(self.show_output_values)
+
+            self.neural_network_output_number_selection_box = QtWidgets.QGroupBox()
+            self.neural_network_output_number_horizontal_layout = QtWidgets.QHBoxLayout(self.neural_network_output_number_selection_box)
+            self.neural_network_output_number_horizontal_layout.addWidget(self.neural_network_output_label)
+            self.neural_network_output_number_horizontal_layout.addWidget(self.neural_network_output_selection_combo_box)
+
+            self.neural_network_output_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_output_selection_box)
+            self.neural_network_output_vertical_layout.addWidget(self.neural_network_output_number_selection_box)
+
+            for num in self.letters:
+                exec("self.output_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % num)
+                exec("self.output_value_selection_label%s = QtWidgets.QLabel('Choose %s output variable:')" % (
+                    num, self.adjs[self.letters.index(num)]))
+                print('a')
+                exec("self.output_value_selection_combo_box%s = QtWidgets.QComboBox()" % num)
+                exec("self.output_value_selection_combo_box%s.addItem('Left Joystick Values')" % num)
+                exec("self.output_value_selection_combo_box%s.addItem('Right Joystick Values')" % num)
+                exec("self.output_value_selection_combo_box%s.addItem('Change in Acceleration on X-axis')" % num)
+                exec("self.output_value_selection_combo_box%s.addItem('Change in Acceleration on Y-axis')" % num)
+                exec("self.output_value_selection_combo_box%s.addItem('Change in Rotation on Z-axis')" % num)
+                exec(
+                    "self.neural_network_output_vertical_layout.addWidget(self.output_value_selection_box_group_box%s)" % num)
+                exec(
+                    "self.output_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.output_value_selection_box_group_box%s)" % (
+                        num, num))
+                exec(
+                    "self.output_value_selection_box_horizontal_layout%s.addWidget(self.output_value_selection_label%s)" % (
+                        num, num))
+                exec(
+                    "self.output_value_selection_box_horizontal_layout%s.addWidget(self.output_value_selection_combo_box%s)" % (
+                        num, num))
+                if num != self.letters[0]:
+                    exec("self.output_value_selection_box_group_box%s.hide()" % num)
+
+        self.neural_network_vertical_layout.addWidget(self.neural_network_train_button)
+
         self.value_selection_vertical_layout.addWidget(self.value_selection_button)
 
         self.quantity_selection_box_horizontal_layout = QtWidgets.QHBoxLayout(self.quantity_selection_box_group_box)
@@ -85,6 +187,7 @@ class VisualizerMainWindow(QMainWindow):
         self.quantity_selection_box_horizontal_layout.addWidget(self.quantity_selection_combo_box)
 
         self.master_grid_layout.addWidget(self.value_selection_box, 0, 0, 1, 1)
+        self.master_grid_layout.addWidget(self.neural_network_box, 0, 1, 1, 1)
         self.setCentralWidget(self.central_widget)
         self.central_widget.setLayout(self.master_grid_layout)
 
@@ -132,6 +235,22 @@ class VisualizerMainWindow(QMainWindow):
             exec("self.value_selection_box_group_box%s.show()" % letter)
         for letter in self.letters[self.number_of_values:]:
             exec("self.value_selection_box_group_box%s.hide()" % letter)
+
+    def show_input_values(self):
+        self.number_of_input_values = int(self.neural_network_input_selection_combo_box.currentText())
+        for letter in self.letters[:self.number_of_input_values]:
+            exec("self.input_value_selection_box_group_box%s.show()" % letter)
+        for letter in self.letters[self.number_of_input_values:]:
+            exec("self.input_value_selection_box_group_box%s.hide()" % letter)
+
+    def show_output_values(self):
+        self.number_of_output_values = int(self.neural_network_output_selection_combo_box.currentText())
+        print(self.number_of_output_values)
+        for letter in self.letters[:self.number_of_output_values]:
+            exec("self.output_value_selection_box_group_box%s.show()" % letter)
+        for letter in self.letters[self.number_of_output_values:]:
+            exec("self.output_value_selection_box_group_box%s.hide()" % letter)
+
 
 class DataProcessor(object):
     """A data processing class that allows for the loading of data and preprocessing for neural network"""
@@ -211,6 +330,8 @@ class DecisionNetwork(object):
             self.model.add(Dense(10, input_dim=2, activation='relu'))
             self.model.add(Dense(5, activation='relu'))
             self.model.add(Dense(1))
+            self.loss = []
+            self.epoch_list = []
             print(self.model.input_shape)
             self.model.summary()
             self.optimizer = RMSprop(lr=0.01)
@@ -227,8 +348,11 @@ class DecisionNetwork(object):
             if validate:
                 pass
             else:
-                self.model.fit(self.inputs, self.outputs, batch_size=1000, epochs=1)
+                hist = History()
+                self.model.fit(self.inputs, self.outputs, batch_size=1000, epochs=1, callbacks=[hist])
                 self.save_model()
+                self.loss.append(float(hist.history.get('loss')[0]))
+                self.epoch_list.append(i)
 
     def predict(self, to_predict):
         return self.model.predict(to_predict)
@@ -259,30 +383,38 @@ if __name__ == '__main__':
     dp.load_data(3, False)
     joys, left_joys, right_joys, data, delta_gyro, delta_accelX, delta_accelY, times = dp.preprocess()
     s = set(left_joys + right_joys)
+    """dn = DecisionNetwork("models/dynamics_model_accelX.h5")
+    dn.create_model(joys, delta_accelX, 100, False)
+    dn.train_model()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')
+    plt.show()
+    """
     while True:
         if m.form.is_processed:
-            d = {0: left_joys, 1: right_joys, 2: delta_accelX, 3: delta_accelY, 4:delta_gyro}
+
+            d = {0: left_joys, 1: right_joys, 2: delta_accelX, 3: delta_accelY, 4: delta_gyro}
+            text_list = [m.form.value_selection_combo_box.itemText(i) for i in range(len(d))]
             if m.form.number_of_values == 3:
                 fig = plt.figure()
                 ax = fig.add_subplot(111, projection='3d')
                 ax.scatter(d.get(m.form.value_1), d.get(m.form.value_2), d.get(m.form.value_3), c='b', marker='o')
+                ax.set_title("%s vs %s vs %s" % (text_list[m.form.value_1], text_list[m.form.value_2], text_list[m.form.value_3]))
+                ax.set_xlabel(text_list[m.form.value_1])
+                ax.set_ylabel(text_list[m.form.value_2])
+                ax.set_zlabel(text_list[m.form.value_3])
                 plt.show()
+
+
             elif m.form.number_of_values == 2:
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
                 ax.scatter(d.get(m.form.value_1), d.get(m.form.value_2), c='b', marker='o')
+                ax.set_title("%s vs %s" % (text_list[m.form.value_1], text_list[m.form.value_2]))
+                ax.set_xlabel(text_list[m.form.value_1])
+                ax.set_ylabel(text_list[m.form.value_2])
                 plt.show()
             m.form.is_processed = False
         m.processEvents()
     sys.exit(m.exec_())
-
-    dn = DecisionNetwork("models/dynamics_model_accelX.h5")
-    dn.create_model(joys, delta_accelX, 1000, False)
-    dn.train_model()
-    for i in sorted(s):
-        for j in sorted(s):
-            print(i, j)
-            p = dn.predict(np.array([i, j]).reshape((1,2)))
-            ax2.scatter([i], [j], p, c='b', marker='o')
-
-    plt.show()
