@@ -30,6 +30,7 @@ class VisualizerMainWindow(QMainWindow):
         self.number_of_values = 0
         self.number_of_input_values = 0
         self.number_of_output_values = 0
+        self.number_of_layers_values = 0
         self.is_processed = False
 
     def setupUi(self):
@@ -82,6 +83,13 @@ class VisualizerMainWindow(QMainWindow):
 
         self.value_selection_button = QtWidgets.QPushButton("Visualize!")
         self.value_selection_button.pressed.connect(self.process_values_selected)
+        self.value_selection_vertical_layout.addWidget(self.value_selection_button)
+
+        self.quantity_selection_box_horizontal_layout = QtWidgets.QHBoxLayout(self.quantity_selection_box_group_box)
+        self.quantity_selection_box_horizontal_layout.addWidget(self.quantity_selection_label)
+        self.quantity_selection_box_horizontal_layout.addWidget(self.quantity_selection_combo_box)
+
+        #Neural Network Stuff
 
         self.neural_network_train_button = QtWidgets.QPushButton("Train Network!")
 
@@ -91,9 +99,14 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_output_selection_box = QtWidgets.QGroupBox(title="Output Selection")
         self.neural_network_output_selection_box.setAlignment(QtCore.Qt.AlignCenter)
 
+        self.neural_network_parameter_selection_box = QtWidgets.QGroupBox(title="Parameter Selection")
+        self.neural_network_parameter_selection_box.setAlignment(QtCore.Qt.AlignCenter)
+
         self.neural_network_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_box)
         self.neural_network_vertical_layout.addWidget(self.neural_network_input_selection_box)
         self.neural_network_vertical_layout.addWidget(self.neural_network_output_selection_box)
+        self.neural_network_vertical_layout.addWidget(self.neural_network_parameter_selection_box)
+        self.neural_network_vertical_layout.addWidget(self.neural_network_train_button)
 
         #Inputs
         self.neural_network_input_label = QtWidgets.QLabel("Number of Inputs")
@@ -132,59 +145,101 @@ class VisualizerMainWindow(QMainWindow):
             exec(
                 "self.input_value_selection_box_horizontal_layout%s.addWidget(self.input_value_selection_combo_box%s)" % (
                 number, number))
-            if number != self.letters[0]:
+            if number != self.letters[0] and number != self.letters[1]:
                 exec("self.input_value_selection_box_group_box%s.hide()" % number)
 
-            # Outputs
-            self.neural_network_output_label = QtWidgets.QLabel("Number of Outputs")
-            self.neural_network_output_selection_combo_box = QtWidgets.QComboBox()
-            self.neural_network_output_selection_combo_box.addItem("1")
-            self.neural_network_output_selection_combo_box.addItem("2")
-            self.neural_network_output_selection_combo_box.addItem("3")
-            self.neural_network_output_selection_combo_box.addItem("4")
-            self.neural_network_output_selection_combo_box.addItem("5")
-            self.neural_network_output_selection_combo_box.currentIndexChanged.connect(self.show_output_values)
+        # Outputs
+        self.neural_network_output_label = QtWidgets.QLabel("Number of Outputs")
+        self.neural_network_output_selection_combo_box = QtWidgets.QComboBox()
+        self.neural_network_output_selection_combo_box.addItem("1")
+        self.neural_network_output_selection_combo_box.addItem("2")
+        self.neural_network_output_selection_combo_box.addItem("3")
+        self.neural_network_output_selection_combo_box.addItem("4")
+        self.neural_network_output_selection_combo_box.addItem("5")
+        self.neural_network_output_selection_combo_box.currentIndexChanged.connect(self.show_output_values)
 
-            self.neural_network_output_number_selection_box = QtWidgets.QGroupBox()
-            self.neural_network_output_number_horizontal_layout = QtWidgets.QHBoxLayout(self.neural_network_output_number_selection_box)
-            self.neural_network_output_number_horizontal_layout.addWidget(self.neural_network_output_label)
-            self.neural_network_output_number_horizontal_layout.addWidget(self.neural_network_output_selection_combo_box)
+        self.neural_network_output_number_selection_box = QtWidgets.QGroupBox()
+        self.neural_network_output_number_horizontal_layout = QtWidgets.QHBoxLayout(self.neural_network_output_number_selection_box)
+        self.neural_network_output_number_horizontal_layout.addWidget(self.neural_network_output_label)
+        self.neural_network_output_number_horizontal_layout.addWidget(self.neural_network_output_selection_combo_box)
 
-            self.neural_network_output_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_output_selection_box)
-            self.neural_network_output_vertical_layout.addWidget(self.neural_network_output_number_selection_box)
+        self.neural_network_output_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_output_selection_box)
+        self.neural_network_output_vertical_layout.addWidget(self.neural_network_output_number_selection_box)
 
-            for num in self.letters:
-                exec("self.output_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % num)
-                exec("self.output_value_selection_label%s = QtWidgets.QLabel('Choose %s output variable:')" % (
-                    num, self.adjs[self.letters.index(num)]))
-                print('a')
-                exec("self.output_value_selection_combo_box%s = QtWidgets.QComboBox()" % num)
-                exec("self.output_value_selection_combo_box%s.addItem('Left Joystick Values')" % num)
-                exec("self.output_value_selection_combo_box%s.addItem('Right Joystick Values')" % num)
-                exec("self.output_value_selection_combo_box%s.addItem('Change in Acceleration on X-axis')" % num)
-                exec("self.output_value_selection_combo_box%s.addItem('Change in Acceleration on Y-axis')" % num)
-                exec("self.output_value_selection_combo_box%s.addItem('Change in Rotation on Z-axis')" % num)
-                exec(
-                    "self.neural_network_output_vertical_layout.addWidget(self.output_value_selection_box_group_box%s)" % num)
-                exec(
-                    "self.output_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.output_value_selection_box_group_box%s)" % (
-                        num, num))
-                exec(
-                    "self.output_value_selection_box_horizontal_layout%s.addWidget(self.output_value_selection_label%s)" % (
-                        num, num))
-                exec(
-                    "self.output_value_selection_box_horizontal_layout%s.addWidget(self.output_value_selection_combo_box%s)" % (
-                        num, num))
-                if num != self.letters[0]:
-                    exec("self.output_value_selection_box_group_box%s.hide()" % num)
+        for num in self.letters:
+            exec("self.output_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % num)
+            exec("self.output_value_selection_label%s = QtWidgets.QLabel('Choose %s output variable:')" % (
+                num, self.adjs[self.letters.index(num)]))
+            exec("self.output_value_selection_combo_box%s = QtWidgets.QComboBox()" % num)
+            exec("self.output_value_selection_combo_box%s.addItem('Left Joystick Values')" % num)
+            exec("self.output_value_selection_combo_box%s.addItem('Right Joystick Values')" % num)
+            exec("self.output_value_selection_combo_box%s.addItem('Change in Acceleration on X-axis')" % num)
+            exec("self.output_value_selection_combo_box%s.addItem('Change in Acceleration on Y-axis')" % num)
+            exec("self.output_value_selection_combo_box%s.addItem('Change in Rotation on Z-axis')" % num)
+            exec(
+                "self.neural_network_output_vertical_layout.addWidget(self.output_value_selection_box_group_box%s)" % num)
+            exec(
+                "self.output_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.output_value_selection_box_group_box%s)" % (
+                    num, num))
+            exec(
+                "self.output_value_selection_box_horizontal_layout%s.addWidget(self.output_value_selection_label%s)" % (
+                    num, num))
+            exec(
+                "self.output_value_selection_box_horizontal_layout%s.addWidget(self.output_value_selection_combo_box%s)" % (
+                    num, num))
+            if num != self.letters[0]:
+                exec("self.output_value_selection_box_group_box%s.hide()" % num)
 
-        self.neural_network_vertical_layout.addWidget(self.neural_network_train_button)
+        #Parameters:
+        self.neural_network_parameter_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_parameter_selection_box)
 
-        self.value_selection_vertical_layout.addWidget(self.value_selection_button)
+        self.neural_network_epochs_label = QtWidgets.QLabel("Epochs:")
+        self.neural_network_epochs_spin_box = QtWidgets.QSpinBox()
+        self.neural_network_epochs_spin_box.setMaximum(100000)
+        self.neural_network_epochs_selection_box = QtWidgets.QGroupBox()
+        self.neural_network_epochs_horizontal_layout = QtWidgets.QHBoxLayout(
+        self.neural_network_epochs_selection_box)
+        self.neural_network_epochs_horizontal_layout.addWidget(self.neural_network_epochs_label)
+        self.neural_network_epochs_horizontal_layout.addWidget(self.neural_network_epochs_spin_box)
+        self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_epochs_selection_box)
 
-        self.quantity_selection_box_horizontal_layout = QtWidgets.QHBoxLayout(self.quantity_selection_box_group_box)
-        self.quantity_selection_box_horizontal_layout.addWidget(self.quantity_selection_label)
-        self.quantity_selection_box_horizontal_layout.addWidget(self.quantity_selection_combo_box)
+        self.neural_network_layers_label = QtWidgets.QLabel("Number of Layers")
+        self.neural_network_layers_selection_combo_box = QtWidgets.QComboBox()
+        self.neural_network_layers_selection_combo_box.addItem("2")
+        self.neural_network_layers_selection_combo_box.addItem("3")
+        self.neural_network_layers_selection_combo_box.addItem("4")
+        self.neural_network_layers_selection_combo_box.addItem("5")
+        self.neural_network_layers_selection_combo_box.currentIndexChanged.connect(self.show_parameters_values)
+
+        self.neural_network_layers_number_selection_box = QtWidgets.QGroupBox()
+        self.neural_network_layers_number_horizontal_layout = QtWidgets.QHBoxLayout(
+        self.neural_network_layers_number_selection_box)
+        self.neural_network_layers_number_horizontal_layout.addWidget(self.neural_network_layers_label)
+        self.neural_network_layers_number_horizontal_layout.addWidget(self.neural_network_layers_selection_combo_box)
+        self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_layers_number_selection_box)
+
+        self.numbers = [i for i in range(5)]
+        for num, n in zip(self.letters, self.numbers):
+            exec("self.layers_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % num)
+            exec("self.layers_value_selection_label%s = QtWidgets.QLabel('Neurons in Layer %s')" % (
+                num, n))
+            exec("self.layers_value_selection_spin_box%s = QtWidgets.QSpinBox()" % num)
+            exec("self.layers_value_selection_spin_box.setMaximum(100000)")
+
+            exec(
+                "self.layers_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.layers_value_selection_box_group_box%s)" % (
+                    num, num))
+            exec(
+                "self.layers_value_selection_box_horizontal_layout%s.addWidget(self.layers_value_selection_label%s)" % (
+                    num, num))
+            exec(
+                "self.layers_value_selection_box_horizontal_layout%s.addWidget(self.layers_value_selection_spin_box%s)" % (
+                    num, num))
+            exec(
+                "self.neural_network_parameter_vertical_layout.addWidget(self.layers_value_selection_box_group_box%s)" % num)
+
+            if num != self.letters[0]:
+                exec("self.layers_value_selection_box_group_box%s.hide()" % num)
 
         self.master_grid_layout.addWidget(self.value_selection_box, 0, 0, 1, 1)
         self.master_grid_layout.addWidget(self.neural_network_box, 0, 1, 1, 1)
@@ -245,11 +300,17 @@ class VisualizerMainWindow(QMainWindow):
 
     def show_output_values(self):
         self.number_of_output_values = int(self.neural_network_output_selection_combo_box.currentText())
-        print(self.number_of_output_values)
         for letter in self.letters[:self.number_of_output_values]:
             exec("self.output_value_selection_box_group_box%s.show()" % letter)
         for letter in self.letters[self.number_of_output_values:]:
             exec("self.output_value_selection_box_group_box%s.hide()" % letter)
+
+    def show_parameters_values(self):
+        self.number_of_layers_values = int(self.neural_network_layers_selection_combo_box.currentText())
+        for letter in self.letters[:self.number_of_layers_values]:
+            exec("self.layers_value_selection_box_group_box%s.show()" % letter)
+        for letter in self.letters[self.number_of_layers_values:]:
+            exec("self.layers_value_selection_box_group_box%s.hide()" % letter)
 
 
 class DataProcessor(object):

@@ -193,16 +193,9 @@ class Main(QApplication):
                 self.motor1 = 0
                 self.motor2 = 0
                 if len(open("logs/relative_pos.txt").readlines()) >= 11:
-                    #self.dp = DataProcessor("logs/relative_pos.txt", "logs/pos.txt", "logs/accel.txt", "logs/gyro.txt")
-                    #self.dp.load_data(3,False)
-                    #self.sequences, self.next_sequences = self.dp.preprocess(10, 1)
-                    #self.decision = self.dn.predict(np.expand_dims(self.sequences[-1], axis=0))
-                    #self.window_log("Neural Network Decision:\n%s\nBased on:\n%s" % (self.decision, self.sequences[-1]))
                     pass
                 self.window_comm("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
                 self.log("%s PC: %s %s" % (datetime.datetime.now(), self.motor1, self.motor2))
-                #while not round((time.time()-self.prev_time),3).is_integer():
-                    #pass
                 self.data, self.address = self.brush_bot_handler.send_message("%s %s" % (self.motor1, self.motor2), True)
                 self.prev_time = time.time()
                 if isinstance(self.data, type(None)) and isinstance(self.address, type(None)):
