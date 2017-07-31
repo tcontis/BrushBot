@@ -1,5 +1,7 @@
 """Decision Network for BrushBot"""
 
+import matplotlib
+matplotlib.use('TkAgg')
 from keras.models import load_model, Sequential
 from keras.layers import Dropout, LSTM, Activation, Dense
 from keras.optimizers import RMSprop
@@ -14,6 +16,7 @@ import time
 import pyqtgraph as pg
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import (QGridLayout, QMainWindow)
+
 
 class VisualizerMainWindow(QMainWindow):
     """The Main Window for the BrushBot Project"""
@@ -631,18 +634,19 @@ if __name__ == '__main__':
                 y = []
                 z = []
 
-                fig2 = plt.figure().gca(projection="3d")
+                fig2 = plt.figure()
+                ax2 = fig2.add_subplot(111, projection='3d')
 
-
-                for i in range(-1024, 1025, 16):
-                    for j in range(-1024, 1025, 16):
+                for i in range(-1024, 1025, 4):
+                    for j in range(-1024, 1025, 4):
                         x.append(i)
                         y.append(j)
                         z.append(dn.model.predict(np.array([i,j]).reshape(1, dn.input_shape[1]))[0][0])
-                fig2.plot_surface(np.array(x), np.array(y), np.array(z), color = 'blue')
-                print(np.array(x).shape)
-                ax2 = plt.gca()
                 ax2.set_title("Predicted (blue) vs Actual (red)")
+                ax2.scatter(x, y, z, color='blue', marker='o', rasterized=True)
+                ax2.set_xlim3d(min(x), max(x))
+                ax2.set_ylim3d(min(y), max(y))
+                ax2.set_zlim3d(min(z), min(z))
                 if len(inputs[0]) > 1:
                     ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
                     ax2.set_ylabel(text_list[m.form.input_value_selection_combo_box_2.currentIndex()])
