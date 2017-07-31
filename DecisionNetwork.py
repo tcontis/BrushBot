@@ -4,7 +4,6 @@ import matplotlib
 matplotlib.use('TkAgg')
 from keras.models import load_model, Sequential
 from keras.layers import Dropout, LSTM, Activation, Dense
-from keras.optimizers import RMSprop
 from keras.callbacks import History
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -13,7 +12,6 @@ from PyQt5.QtCore import QObject
 from PyQt5.Qt import QApplication, QTimer
 import sys
 import time
-import pyqtgraph as pg
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import (QGridLayout, QMainWindow)
 
@@ -113,9 +111,6 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_box)
         self.neural_network_vertical_layout.addWidget(self.neural_network_input_selection_box)
         self.neural_network_vertical_layout.addWidget(self.neural_network_output_selection_box)
-
-        #self.neural_network_parameter_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_parameter_selection_box)
-
 
         #Inputs
         self.neural_network_input_label = QtWidgets.QLabel("Number of Inputs")
@@ -234,8 +229,7 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_optimizer_selection_combo_box.addItem("adamax")
         self.neural_network_optimizer_selection_combo_box.addItem("nadam")
         self.neural_network_optimizer_selection_box = QtWidgets.QGroupBox()
-        self.neural_network_optimizer_horizontal_layout = QtWidgets.QHBoxLayout(
-            self.neural_network_optimizer_selection_box)
+        self.neural_network_optimizer_horizontal_layout = QtWidgets.QHBoxLayout(self.neural_network_optimizer_selection_box)
         self.neural_network_optimizer_horizontal_layout.addWidget(self.neural_network_optimizer_label)
         self.neural_network_optimizer_horizontal_layout.addWidget(self.neural_network_optimizer_selection_combo_box)
         self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_optimizer_selection_box)
@@ -317,17 +311,14 @@ class VisualizerMainWindow(QMainWindow):
         self.central_widget.setLayout(self.master_grid_layout)
 
         menubar = self.menuBar()
-
         font = QtGui.QFont()
         font.setFamily("Segoe UI Historic")
         font.setWeight(50)
         menubar.setFont(font)
         menu_file = QtWidgets.QMenu(menubar)
         menu_file.setObjectName("menuFile")
-
         menu_file.setTitle("File")
         menubar.addAction(menu_file.menuAction())
-
         actionExit = QtWidgets.QAction(self)
         actionExit.setShortcut('Ctrl+Q')
         actionExit.triggered.connect(self.close)
@@ -550,10 +541,6 @@ class VisualizerMain(QApplication):
         self.form.show()
         self.form.update()
 
-    def main_loop(self):
-        self.processEvents()
-        time.sleep(0.001)
-
 if __name__ == '__main__':
     m = VisualizerMain("/logs")
     m.create_window()
@@ -566,7 +553,6 @@ if __name__ == '__main__':
     text_list = [m.form.value_selection_combo_box.itemText(i) for i in range(len(d))]
     while True:
         if m.form.is_processed:
-
             if m.form.number_of_values == 3:
                 fig = plt.figure()
                 ax = fig.add_subplot(111, projection='3d')
@@ -575,7 +561,6 @@ if __name__ == '__main__':
                 ax.set_xlabel(text_list[m.form.value_1])
                 ax.set_ylabel(text_list[m.form.value_2])
                 ax.set_zlabel(text_list[m.form.value_3])
-                #plt.show()
             elif m.form.number_of_values == 2:
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
@@ -583,7 +568,6 @@ if __name__ == '__main__':
                 ax.set_title("%s vs %s" % (text_list[m.form.value_1], text_list[m.form.value_2]))
                 ax.set_xlabel(text_list[m.form.value_1])
                 ax.set_ylabel(text_list[m.form.value_2])
-                #plt.show()
             m.form.is_processed = False
 
         if m.form.network_processed:
@@ -598,7 +582,6 @@ if __name__ == '__main__':
                 for temp in temp_i:
                     a.append(temp[num])
                 inputs.append(a)
-
             for o in m.form.outputs:
                 temp_o.append(d.get(o))
             for num in range(len(temp_o[0])):
@@ -636,12 +619,10 @@ if __name__ == '__main__':
                 x = []
                 y = []
                 z = []
-
                 fig2 = plt.figure()
                 ax2 = fig2.add_subplot(111, projection='3d')
-
-                for i in range(-1024, 1025, 4):
-                    for j in range(-1024, 1025, 4):
+                for i in range(-1024, 1025, 16):
+                    for j in range(-1024, 1025, 16):
                         x.append(i)
                         y.append(j)
                         z.append(dn.model.predict(np.array([i,j]).reshape(1, dn.input_shape[1]))[0][0])
@@ -654,13 +635,32 @@ if __name__ == '__main__':
                     ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
                     ax2.set_ylabel(text_list[m.form.input_value_selection_combo_box_2.currentIndex()])
                     ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
-                    ax2.scatter([inputs[i][0] for i in range(len(inputs))], [inputs[i][1] for i in range(len(inputs))], outputs, c='r', marker='s')
+                    xs = [inputs[i][0] for i in range(len(inputs))]
+                    ys = [inputs[i][1] for i in range(len(inputs))]
+                    zs = [outputs[i] for i in range(len(outputs))]
+                    delx = []
+                    dely = []
+                    delz = []
+                    for i in range(len(xs)):
+                        if xs[i] < min(x) or xs[i] > max(x) or ys[i] < min(y) or ys[i] > max(y) or zs[i] < min(z) or zs[i] > max(z):
+                            delx.append(xs[i])
+                            dely.append(ys[i])
+                            delz.append(zs[i])
+                    for j in delx:
+                        xs.remove(j)
+                    for j in dely:
+                        ys.remove(j)
+                    for j in delz:
+                        zs.remove(j)
+                    ax2.scatter(xs, ys, zs, c='r', marker='s')
                 else:
                     ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
                     ax2.set_ylabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
                     ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box_2.currentIndex()])
-                    ax2.scatter(inputs, [outputs[i][0] for i in range(len(outputs))], [outputs[i][1] for i in range(len(outputs))], c='r', marker='s')
+                    ax2.scatter([inputs[i] for i in range(len(inputs)) if inputs[i] >= min(x) and inputs[i] <= max(x)],
+                                [outputs[i][0] for i in range(len(outputs)) if outputs[i][0] >= min(z) and outputs[i][0] <= max(z)],
+                                [outputs[i][1] for i in range(len(outputs)) if outputs[i][1] >= min(z) and outputs[i][1] <= max(z)], c='r', marker='s')
             m.form.network_processed = False
         plt.show()
         m.processEvents()
-    sys.exit(m.exec_())
+    sys.exit(m.exec_()) #BrushBot == Devil
