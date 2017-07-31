@@ -35,6 +35,7 @@ class VisualizerMainWindow(QMainWindow):
         self.value_4 = None
         self.value_5 = None
         self.neurons = []
+        self.activations = []
         self.is_processed = False
         self.network_processed = False
 
@@ -229,8 +230,33 @@ class VisualizerMainWindow(QMainWindow):
             exec("self.layers_value_selection_label%s = QtWidgets.QLabel('Neurons in Layer %s')" % (
                 num, n))
             exec("self.layers_value_selection_spin_box%s = QtWidgets.QSpinBox()" % num)
-            exec("self.layers_value_selection_spin_box.setMinimum(1)")
-            exec("self.layers_value_selection_spin_box.setMaximum(100000)")
+            exec("self.layers_value_selection_spin_box%s.setMinimum(1)" % num)
+            exec("self.layers_value_selection_spin_box%s.setMaximum(100000)" % num)
+
+            exec("self.activation_value_selection_box_group_box%s = QtWidgets.QGroupBox()" % num)
+            exec("self.activation_value_selection_label%s = QtWidgets.QLabel('Activation in Layer %s')" % (
+                num, n))
+            exec("self.activation_value_selection_spin_box%s = QtWidgets.QComboBox()" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('None')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('softmax')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('elu')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('selu')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('softplus')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('softsign')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('relu')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('tanh')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('sigmoid')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('hard_sigmoid')" % num)
+            exec("self.activation_value_selection_spin_box%s.addItem('linear')" % num)
+            exec(
+                "self.activation_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.activation_value_selection_box_group_box%s)" % (
+                    num, num))
+            exec(
+                "self.activation_value_selection_box_horizontal_layout%s.addWidget(self.activation_value_selection_label%s)" % (
+                    num, num))
+            exec(
+                "self.activation_value_selection_box_horizontal_layout%s.addWidget(self.activation_value_selection_spin_box%s)" % (
+                    num, num))
 
             exec(
                 "self.layers_value_selection_box_horizontal_layout%s = QtWidgets.QHBoxLayout(self.layers_value_selection_box_group_box%s)" % (
@@ -243,9 +269,12 @@ class VisualizerMainWindow(QMainWindow):
                     num, num))
             exec(
                 "self.neural_network_parameter_vertical_layout.addWidget(self.layers_value_selection_box_group_box%s)" % num)
+            exec(
+                "self.neural_network_parameter_vertical_layout.addWidget(self.activation_value_selection_box_group_box%s)" % num)
 
             if num != self.letters[0] and num != self.letters[1]:
                 exec("self.layers_value_selection_box_group_box%s.hide()" % num)
+                exec("self.activation_value_selection_box_group_box%s.hide()" % num)
         exec("self.layers_value_selection_spin_box%s.setValue(self.number_of_output_values)" % self.to_show[-1])
         exec("self.layers_value_selection_spin_box%s.setReadOnly(True)" % self.to_show[-1])
 
@@ -305,6 +334,13 @@ class VisualizerMainWindow(QMainWindow):
         for i in self.letters[0:self.number_of_output_values]:
             string = "self.output_value_selection_combo_box%s.currentIndex()" % i
             self.outputs.append(eval(string))
+        self.activations = []
+        for i in self.letters[0:self.number_of_layers_values]:
+            string = "self.activation_value_selection_spin_box%s.currentText()" % i
+            if eval(string) == 'None':
+                self.activations.append(None)
+            else:
+                self.activations.append(eval(string))
         self.network_processed = True
 
     def show_values(self):
@@ -334,6 +370,7 @@ class VisualizerMainWindow(QMainWindow):
         self.to_show = self.letters[:self.number_of_layers_values]
         for letter in self.to_show:
             exec("self.layers_value_selection_box_group_box%s.show()" % letter)
+            exec("self.activation_value_selection_box_group_box%s.show()" % letter)
             if letter == self.to_show[-1]:
                 exec("self.layers_value_selection_spin_box%s.setValue(self.number_of_output_values)" % letter)
                 exec("self.layers_value_selection_spin_box%s.setReadOnly(True)" % letter)
@@ -345,7 +382,7 @@ class VisualizerMainWindow(QMainWindow):
         for letter in self.letters[self.number_of_layers_values:]:
             exec("self.layers_value_selection_spin_box%s.setValue(0)" % letter)
             exec("self.layers_value_selection_box_group_box%s.hide()" % letter)
-
+            exec("self.activation_value_selection_box_group_box%s.hide()" % letter)
 
 class DataProcessor(object):
     """A data processing class that allows for the loading of data and preprocessing for neural network"""
@@ -414,7 +451,7 @@ class DecisionNetwork(object):
         self.model = None
         self.optimizer = None
 
-    def create_model(self, inputs, outputs, epochs, neurons, load=False):
+    def create_model(self, inputs, outputs, epochs, neurons, activations, load=False):
         if load:
             self.load_model()
         else:
@@ -422,13 +459,19 @@ class DecisionNetwork(object):
             self.outputs = outputs
             self.epochs = epochs
             self.model = Sequential()
-            for i in neurons:
+            for i, a in zip(neurons, activations):
                 if i == neurons[0]:
-                    exec("self.model.add(Dense(%s, input_dim=len(inputs[0]), activation='relu'))" % i)
+                    if a == None:
+                        exec("self.model.add(Dense(%s, input_dim=len(inputs[0]), activation=%s))" % (i, a))
+                    else:
+                        exec("self.model.add(Dense(%s, input_dim=len(inputs[0]), activation='%s'))" % (i, a))
                 elif i == neurons[-1]:
                     exec("self.model.add(Dense(%s))" % i)
                 else:
-                    exec("self.model.add(Dense(%s, activation='relu'))" % i)
+                    if a == None:
+                        exec("self.model.add(Dense(%s, activation=%s))" % (i, a))
+                    else:
+                        exec("self.model.add(Dense(%s, activation='%s'))" % (i, a))
             self.loss = []
             self.epoch_list = []
             print(self.model.input_shape)
@@ -447,8 +490,9 @@ class DecisionNetwork(object):
             if validate:
                 pass
             else:
+                print("Iteration: ", i)
                 hist = History()
-                self.model.fit(self.inputs, self.outputs, batch_size=1000, epochs=1, callbacks=[hist])
+                self.model.fit(self.inputs, self.outputs, batch_size=100, epochs=1, callbacks=[hist])
                 self.save_model()
                 self.loss.append(float(hist.history.get('loss')[0]))
                 self.epoch_list.append(i)
@@ -527,7 +571,7 @@ if __name__ == '__main__':
                 outputs.append(b)
 
             dn = DecisionNetwork("models/dynamics_model.h5")
-            dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(), m.form.neurons, False)
+            dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(), m.form.neurons, m.form.activations, False)
             dn.train_model()
             """fig = plt.figure()
             ax = fig.add_subplot(111)
