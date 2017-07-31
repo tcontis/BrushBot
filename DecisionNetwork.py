@@ -220,6 +220,22 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_batch_horizontal_layout.addWidget(self.neural_network_batch_spin_box)
         self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_batch_selection_box)
 
+        self.neural_network_optimizer_label = QtWidgets.QLabel("Optimizer: ")
+        self.neural_network_optimizer_selection_combo_box = QtWidgets.QComboBox()
+        self.neural_network_optimizer_selection_combo_box.addItem("sgd")
+        self.neural_network_optimizer_selection_combo_box.addItem("rmsprop")
+        self.neural_network_optimizer_selection_combo_box.addItem("adagrad")
+        self.neural_network_optimizer_selection_combo_box.addItem("adadelta")
+        self.neural_network_optimizer_selection_combo_box.addItem("adam")
+        self.neural_network_optimizer_selection_combo_box.addItem("adamax")
+        self.neural_network_optimizer_selection_combo_box.addItem("nadam")
+        self.neural_network_optimizer_selection_box = QtWidgets.QGroupBox()
+        self.neural_network_optimizer_horizontal_layout = QtWidgets.QHBoxLayout(
+            self.neural_network_optimizer_selection_box)
+        self.neural_network_optimizer_horizontal_layout.addWidget(self.neural_network_optimizer_label)
+        self.neural_network_optimizer_horizontal_layout.addWidget(self.neural_network_optimizer_selection_combo_box)
+        self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_optimizer_selection_box)
+
         self.neural_network_layers_label = QtWidgets.QLabel("Number of Layers")
         self.neural_network_layers_selection_combo_box = QtWidgets.QComboBox()
         self.neural_network_layers_selection_combo_box.addItem("2")
@@ -462,7 +478,7 @@ class DecisionNetwork(object):
         self.model = None
         self.optimizer = None
 
-    def create_model(self, inputs, outputs, epochs, batch, neurons, activations, load=False):
+    def create_model(self, inputs, outputs, epochs, batch, neurons, activations, optimizer, load=False):
         if load:
             self.load_model()
         else:
@@ -471,6 +487,7 @@ class DecisionNetwork(object):
             self.epochs = epochs
             self.batch = batch
             self.model = Sequential()
+            self.optimizer = optimizer
             for i, a in zip(neurons, activations):
                 if i == neurons[0]:
                     if a == None:
@@ -487,9 +504,9 @@ class DecisionNetwork(object):
             self.loss = []
             self.epoch_list = []
             print(self.model.input_shape)
+            self.input_shape = self.model.input_shape
             self.model.summary()
-            self.optimizer = RMSprop(lr=0.01)
-            self.model.compile(loss='mse', optimizer=self.optimizer)
+            exec("self.model.compile(loss='mse', optimizer='%s')" % self.optimizer)
 
     def load_model(self):
         self.model = load_model(self.savefile)
@@ -540,9 +557,10 @@ if __name__ == '__main__':
     s = set(left_joys + right_joys)
     d = {0: left_joys, 1: right_joys, 2: delta_accelX, 3: delta_accelY, 4: delta_gyro}
     print(len(set(left_joys)), ", ", len(set(right_joys)))
+    text_list = [m.form.value_selection_combo_box.itemText(i) for i in range(len(d))]
     while True:
         if m.form.is_processed:
-            text_list = [m.form.value_selection_combo_box.itemText(i) for i in range(len(d))]
+
             if m.form.number_of_values == 3:
                 fig = plt.figure()
                 ax = fig.add_subplot(111, projection='3d')
@@ -585,18 +603,23 @@ if __name__ == '__main__':
 
             dn = DecisionNetwork("models/dynamics_model.h5")
             dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(),
-                            m.form.neural_network_batch_spin_box.value(), m.form.neurons, m.form.activations, False)
+                            m.form.neural_network_batch_spin_box.value(), m.form.neurons, m.form.activations,
+                            m.form.neural_network_optimizer_selection_combo_box.currentText(), False)
             dn.train_model()
             loss_fig = plt.figure()
             loss_ax = loss_fig.add_subplot(111)
             loss_ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')
             loss_ax.set_title("Loss vs Epoch")
+            loss_ax.set_xlabel("Epochs")
+            loss_ax.set_ylabel("Loss")
             if (len(inputs[0]) + len(outputs[0])) == 2:
                 y = []
                 z = []
                 fig2 = plt.figure()
                 ax2 = fig2.add_subplot(111)
                 ax2.set_title("Predicted (blue) vs Actual (red)")
+                ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
+                ax2.set_ylabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
                 for i in range(-1023, 1023):
                     y.append(i)
                     z.append(dn.model.predict(np.array([i]))[0][0])
@@ -610,12 +633,23 @@ if __name__ == '__main__':
                 fig2 = plt.figure()
                 ax2 = fig2.add_subplot(111, projection='3d')
                 ax2.set_title("Predicted (blue) vs Actual (red)")
-                for i in range(-1023, 1023):
-                    x.append(i)
-                    y.append(i)
-                    z.append(dn.model.predict(np.array([i]))[0][0])
-                ax2.plot(x, y, z, c='b', marker='o')
-                ax2.scatter(inputs, outputs, c='r', marker='s')
+
+                for i in range(-1024, 1025, 4):
+                    for j in range(-1024, 1025, 4):
+                        x.append(i)
+                        y.append(j)
+                        z.append(dn.model.predict(np.array([i,j]).reshape(1, dn.input_shape[1]))[0][0])
+                ax2.scatter(x, y, z, c='b', marker='o')
+                if len(inputs[0]) > 1:
+                    ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
+                    ax2.set_ylabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
+                    ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
+                    ax2.scatter([inputs[i][0] for i in range(len(inputs))], [inputs[i][1] for i in range(len(inputs))], outputs, c='r', marker='s')
+                else:
+                    ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
+                    ax2.set_ylabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
+                    ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
+                    ax2.scatter(inputs, [outputs[i][0] for i in range(len(outputs))], [outputs[i][1] for i in range(len(outputs))], c='r', marker='s')
             m.form.network_processed = False
         plt.show()
         m.processEvents()
