@@ -209,6 +209,17 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_epochs_horizontal_layout.addWidget(self.neural_network_epochs_spin_box)
         self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_epochs_selection_box)
 
+        self.neural_network_batch_label = QtWidgets.QLabel("Batch Size:")
+        self.neural_network_batch_spin_box = QtWidgets.QSpinBox()
+        self.neural_network_batch_spin_box.setMinimum(1)
+        self.neural_network_batch_spin_box.setMaximum(100000)
+        self.neural_network_batch_selection_box = QtWidgets.QGroupBox()
+        self.neural_network_batch_horizontal_layout = QtWidgets.QHBoxLayout(
+        self.neural_network_batch_selection_box)
+        self.neural_network_batch_horizontal_layout.addWidget(self.neural_network_batch_label)
+        self.neural_network_batch_horizontal_layout.addWidget(self.neural_network_batch_spin_box)
+        self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_batch_selection_box)
+
         self.neural_network_layers_label = QtWidgets.QLabel("Number of Layers")
         self.neural_network_layers_selection_combo_box = QtWidgets.QComboBox()
         self.neural_network_layers_selection_combo_box.addItem("2")
@@ -451,13 +462,14 @@ class DecisionNetwork(object):
         self.model = None
         self.optimizer = None
 
-    def create_model(self, inputs, outputs, epochs, neurons, activations, load=False):
+    def create_model(self, inputs, outputs, epochs, batch, neurons, activations, load=False):
         if load:
             self.load_model()
         else:
             self.inputs = inputs
             self.outputs = outputs
             self.epochs = epochs
+            self.batch = batch
             self.model = Sequential()
             for i, a in zip(neurons, activations):
                 if i == neurons[0]:
@@ -492,7 +504,7 @@ class DecisionNetwork(object):
             else:
                 print("Iteration: ", i)
                 hist = History()
-                self.model.fit(self.inputs, self.outputs, batch_size=100, epochs=1, callbacks=[hist])
+                self.model.fit(self.inputs, self.outputs, batch_size=self.batch, epochs=1, callbacks=[hist])
                 self.save_model()
                 self.loss.append(float(hist.history.get('loss')[0]))
                 self.epoch_list.append(i)
@@ -571,7 +583,8 @@ if __name__ == '__main__':
                 outputs.append(b)
 
             dn = DecisionNetwork("models/dynamics_model.h5")
-            dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(), m.form.neurons, m.form.activations, False)
+            dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(),
+                            m.form.neural_network_batch_spin_box.value(), m.form.neurons, m.form.activations, False)
             dn.train_model()
             """fig = plt.figure()
             ax = fig.add_subplot(111)
