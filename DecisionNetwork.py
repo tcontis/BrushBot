@@ -539,6 +539,7 @@ if __name__ == '__main__':
     joys, left_joys, right_joys, data, delta_gyro, delta_accelX, delta_accelY, times = dp.preprocess()
     s = set(left_joys + right_joys)
     d = {0: left_joys, 1: right_joys, 2: delta_accelX, 3: delta_accelY, 4: delta_gyro}
+    print(len(set(left_joys)), ", ", len(set(right_joys)))
     while True:
         if m.form.is_processed:
             text_list = [m.form.value_selection_combo_box.itemText(i) for i in range(len(d))]
@@ -550,7 +551,7 @@ if __name__ == '__main__':
                 ax.set_xlabel(text_list[m.form.value_1])
                 ax.set_ylabel(text_list[m.form.value_2])
                 ax.set_zlabel(text_list[m.form.value_3])
-                plt.show()
+                #plt.show()
             elif m.form.number_of_values == 2:
                 fig = plt.figure()
                 ax = fig.add_subplot(111)
@@ -558,7 +559,7 @@ if __name__ == '__main__':
                 ax.set_title("%s vs %s" % (text_list[m.form.value_1], text_list[m.form.value_2]))
                 ax.set_xlabel(text_list[m.form.value_1])
                 ax.set_ylabel(text_list[m.form.value_2])
-                plt.show()
+                #plt.show()
             m.form.is_processed = False
 
         if m.form.network_processed:
@@ -586,19 +587,36 @@ if __name__ == '__main__':
             dn.create_model(inputs, outputs, m.form.neural_network_epochs_spin_box.value(),
                             m.form.neural_network_batch_spin_box.value(), m.form.neurons, m.form.activations, False)
             dn.train_model()
-            """fig = plt.figure()
-            ax = fig.add_subplot(111)
-            ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')"""
+            loss_fig = plt.figure()
+            loss_ax = loss_fig.add_subplot(111)
+            loss_ax.plot(dn.epoch_list, dn.loss, c='b', marker='o')
+            loss_ax.set_title("Loss vs Epoch")
             if (len(inputs[0]) + len(outputs[0])) == 2:
                 y = []
                 z = []
                 fig2 = plt.figure()
                 ax2 = fig2.add_subplot(111)
+                ax2.set_title("Predicted (blue) vs Actual (red)")
                 for i in range(-1023, 1023):
                     y.append(i)
                     z.append(dn.model.predict(np.array([i]))[0][0])
                 ax2.plot(y, z, c='b', marker='o')
-                plt.show()
+                ax2.scatter(inputs, outputs, c='r', marker='s')
             m.form.network_processed = False
+            if (len(inputs[0]) + len(outputs[0])) == 3:
+                x = []
+                y = []
+                z = []
+                fig2 = plt.figure()
+                ax2 = fig2.add_subplot(111, projection='3d')
+                ax2.set_title("Predicted (blue) vs Actual (red)")
+                for i in range(-1023, 1023):
+                    x.append(i)
+                    y.append(i)
+                    z.append(dn.model.predict(np.array([i]))[0][0])
+                ax2.plot(x, y, z, c='b', marker='o')
+                ax2.scatter(inputs, outputs, c='r', marker='s')
+            m.form.network_processed = False
+        plt.show()
         m.processEvents()
     sys.exit(m.exec_())
