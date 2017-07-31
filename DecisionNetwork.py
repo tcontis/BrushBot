@@ -113,8 +113,9 @@ class VisualizerMainWindow(QMainWindow):
         self.neural_network_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_box)
         self.neural_network_vertical_layout.addWidget(self.neural_network_input_selection_box)
         self.neural_network_vertical_layout.addWidget(self.neural_network_output_selection_box)
-        self.neural_network_vertical_layout.addWidget(self.neural_network_parameter_selection_box)
-        self.neural_network_vertical_layout.addWidget(self.neural_network_train_button)
+
+        #self.neural_network_parameter_vertical_layout = QtWidgets.QVBoxLayout(self.neural_network_parameter_selection_box)
+
 
         #Inputs
         self.neural_network_input_label = QtWidgets.QLabel("Number of Inputs")
@@ -307,9 +308,11 @@ class VisualizerMainWindow(QMainWindow):
                 exec("self.activation_value_selection_box_group_box%s.hide()" % num)
         exec("self.layers_value_selection_spin_box%s.setValue(self.number_of_output_values)" % self.to_show[-1])
         exec("self.layers_value_selection_spin_box%s.setReadOnly(True)" % self.to_show[-1])
+        self.neural_network_parameter_vertical_layout.addWidget(self.neural_network_train_button)
 
         self.master_grid_layout.addWidget(self.value_selection_box, 0, 0, 1, 1)
         self.master_grid_layout.addWidget(self.neural_network_box, 0, 1, 1, 1)
+        self.master_grid_layout.addWidget(self.neural_network_parameter_selection_box, 0, 2, 1, 1)
         self.setCentralWidget(self.central_widget)
         self.central_widget.setLayout(self.master_grid_layout)
 
@@ -646,7 +649,7 @@ if __name__ == '__main__':
                 ax2.scatter(x, y, z, color='blue', marker='o', rasterized=True)
                 ax2.set_xlim3d(min(x), max(x))
                 ax2.set_ylim3d(min(y), max(y))
-                ax2.set_zlim3d(min(z), min(z))
+                ax2.set_zlim3d(min(z), max(z))
                 if len(inputs[0]) > 1:
                     ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
                     ax2.set_ylabel(text_list[m.form.input_value_selection_combo_box_2.currentIndex()])
