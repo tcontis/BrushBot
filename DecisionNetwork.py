@@ -630,25 +630,28 @@ if __name__ == '__main__':
                 x = []
                 y = []
                 z = []
-                fig2 = plt.figure()
-                ax2 = fig2.add_subplot(111, projection='3d')
-                ax2.set_title("Predicted (blue) vs Actual (red)")
 
-                for i in range(-1024, 1025, 4):
-                    for j in range(-1024, 1025, 4):
+                fig2 = plt.figure().gca(projection="3d")
+
+
+                for i in range(-1024, 1025, 16):
+                    for j in range(-1024, 1025, 16):
                         x.append(i)
                         y.append(j)
                         z.append(dn.model.predict(np.array([i,j]).reshape(1, dn.input_shape[1]))[0][0])
-                ax2.scatter(x, y, z, c='b', marker='o')
+                fig2.plot_surface(np.array(x), np.array(y), np.array(z), color = 'blue')
+                print(np.array(x).shape)
+                ax2 = plt.gca()
+                ax2.set_title("Predicted (blue) vs Actual (red)")
                 if len(inputs[0]) > 1:
                     ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
-                    ax2.set_ylabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
+                    ax2.set_ylabel(text_list[m.form.input_value_selection_combo_box_2.currentIndex()])
                     ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
                     ax2.scatter([inputs[i][0] for i in range(len(inputs))], [inputs[i][1] for i in range(len(inputs))], outputs, c='r', marker='s')
                 else:
                     ax2.set_xlabel(text_list[m.form.input_value_selection_combo_box.currentIndex()])
                     ax2.set_ylabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
-                    ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box.currentIndex()])
+                    ax2.set_zlabel(text_list[m.form.output_value_selection_combo_box_2.currentIndex()])
                     ax2.scatter(inputs, [outputs[i][0] for i in range(len(outputs))], [outputs[i][1] for i in range(len(outputs))], c='r', marker='s')
             m.form.network_processed = False
         plt.show()
